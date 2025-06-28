@@ -28,41 +28,41 @@ export default function Sample1() {
       
 
     // Image Loader
-  //  useEffect(() =>{
-  //   setloader(true)
-  //   fetch(`https://api.pexels.com/v1/search/?page=${pageno}&query=${query}&per_page=20`,{
-  //       headers:{
-  //           Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
-  //       }
-  //   })
-  //   .then((res)=>{return res.json()})
-  //   .then((data)=>{setimagedata(data) , setError(null),setloader(false)})
-  //   .catch((err)=>{
-  //       console.error("fetch error:",err)
-  //       setError("connect to internet ")
-  //       setloader(false)
+   useEffect(() =>{
+    setloader(true)
+    fetch(`https://api.pexels.com/v1/search/?page=${pageno}&query=${query}&per_page=20`,{
+        headers:{
+            Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
+        }
+    })
+    .then((res)=>{return res.json()})
+    .then((data)=>{setimagedata(data) , setError(null),setloader(false)})
+    .catch((err)=>{
+        console.error("fetch error:",err)
+        setError("connect to internet ")
+        setloader(false)
         
-  //   })
-  //  },[query,counter])
+    })
+   },[query,counter])
 
-   // Video Loader
-  //  useEffect(() =>{
-  //   setloader(true)
-  //   fetch(`https://api.pexels.com/videos/search?page=${pageno}&query=${query}&per_page=20`,{
-  //       headers:{
-  //           Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
-  //       }
-  //   })
-  //   .then((res)=>{return res.json()})
-  //   .then((data)=>{setvideodata(data) , setError(null),setloader(false)})
-  //   .catch((err)=>{
-  //       console.error("fetch error:",err)
-  //       setError("connect to internet ")
-  //       setloader(false)
+  //  Video Loader
+   useEffect(() =>{
+    setloader(true)
+    fetch(`https://api.pexels.com/videos/search?page=${pageno}&query=${query}&per_page=20`,{
+        headers:{
+            Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
+        }
+    })
+    .then((res)=>{return res.json()})
+    .then((data)=>{setvideodata(data) , setError(null),setloader(false)})
+    .catch((err)=>{
+        console.error("fetch error:",err)
+        setError("connect to internet ")
+        setloader(false)
         
         
-  //   })
-  //  },[query,counter])
+    })
+   },[query,counter])
 
 
    var next = () =>{
