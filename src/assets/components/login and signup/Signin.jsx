@@ -45,7 +45,7 @@ export default function Signin(){
             setusername(user.user.displayName)
             setTimeout(() => {
                 Navigate("/Home")
-            }, 1000);
+            }, 700);
             
             
             // console.log(user)
@@ -70,20 +70,6 @@ export default function Signin(){
 
 
 
-       
-
-        // const signupuser = () =>{
-        //     createUserWithEmailAndPassword(auth,"ara@gmail.com","123456")
-        //     .then((userCredential)=>{
-        //         const user = userCredential.user
-        //         return updateProfile(user,{displayName : "ram",photoURL : "66"})
-                
-                
-        //     })
-        //     .then(value => console.log(value))
-        // }
-
-
     return(
         <> 
        
@@ -97,7 +83,8 @@ export default function Signin(){
            animate={{x:-100}}
            className="w-full flex items-center justify-center mt-4">
                 <div className="bg-[#1a242f] w-100 p-8 text-white rounded-xl" >
-                    <h1 className="text-2xl font-bold">Sign in</h1>
+                    <h1 
+                    className="text-2xl font-bold">Sign in</h1>
                     <div className="w-full mt-3 flex flex-col">
                         <label>Email</label>
                         <input 
@@ -119,12 +106,13 @@ export default function Signin(){
                         <button className="text-[#00a8e1] text-[12px] cursor-pointer">Forgot Password</button>
                     </div>
                     <div className="flex justify-end mt-4 ">
-                        <button 
+                        <motion.button
+                        whileTap={{scale:0.8}}
                         onClick={signin}
-                        className=" w-full bg-[#00a8e1] p-3 text-xl text-black cursor-pointer">Sign in</button>
+                        className=" w-full bg-[#00a8e1] p-3 text-xl text-black cursor-pointer">Sign in</motion.button>
                     </div>
                     <div className="flex justify-end mt-4 ">
-                      <p>New to Amazon Mini TV? <button onClick={signuppage} className="text-[#00a8e1] cursor-pointer">Create an account</button></p>
+                      <p>New to Imacia? <button onClick={signuppage} className="text-[#00a8e1] cursor-pointer">Create an account</button></p>
                     </div>
 
                 </div>

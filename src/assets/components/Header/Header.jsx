@@ -8,30 +8,34 @@ import UserContext from "../context/UserContext";
 export default function Header(){
 
 
-    // const [data,setimagedata] = useState('')
-
-
-
-    // useEffect(() =>{
-    //     fetch(`https://api.pexels.com/v1/search/?page=1&query=nature&per_page=20`,{
-    //         headers:{
-    //             Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
-    //         }
-    //     })
-    //     .then((res)=>{return res.json()})
-    //     .then((data)=>{setimagedata(data)})
-    //     .catch((err)=>{
-    //         console.error("fetch error:",err)
-            
-    //     })
-    //    },[])
-
-    //    console.log(data.photo)
+    const [image,setimage] = useState()
+    const [imagedata,setimagedata] = useState()
     const {isloggedin,setisloggedin} = useContext(UserContext)
     const [username,setusername] = useState("")
     const {userdata} = useContext(UserContext)
     const [query, setquery] = useState("dog")
     const {setinputvalue} = useContext(UserContext)
+
+
+
+    useEffect(() =>{
+        fetch(`https://api.pexels.com/v1/search/?page=1&query=nature&per_page=20`,{
+            headers:{
+                Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
+            }
+        })
+        .then((res)=>{return res.json()})
+        .then((data)=>{
+            setimage(data.photos?.[Math.floor(Math.random()*(20-1)+1)]?.src.original)
+            setimagedata(data)
+        })
+        .catch((err)=>{
+            console.error("fetch error:",err)
+            
+        })
+       },[])
+
+    
 
     useEffect(()=>{
         if (userdata) {
@@ -41,7 +45,7 @@ export default function Header(){
             setusername(user)
             setisloggedin(true)
         }else{
-            setisloggedin(false)
+            setisloggedin(true)
         }
     },[userdata])
  
@@ -53,10 +57,8 @@ export default function Header(){
 
     return(
         <header className="shadow bg-center md:min-h-125  z-100 relative bg-white top-0  flex flex-col w-full items-center backdrop-blur-3xl"
-        style={{backgroundImage:`url(https://images.pexels.com/photos/14412491/pexels-photo-14412491.jpeg)`,WebkitBackgroundSize:"cover"}}>
-            {/* <div className="w-full h-full absolute bg-black opacity-0.5 -z-1">
-            
-            </div> */}
+        style={{backgroundImage:`url(${image})`,WebkitBackgroundSize:"cover"}}>
+         
 
             <div className={`w-full backdrop-blur-2xl h-screen absolute z-200 items-center justify-center  ${isloggedin ? "hidden" : "flex"} `}>
                 <div className=" p-20 bg-[#0f171e] flex flex-col justify-center items-center rounded-2xl">

@@ -1,11 +1,14 @@
 import { motion } from "motion/react"
 import React, { useContext, useEffect, useState } from "react"
 import UserContext from "../context/UserContext"
+import bg_1 from "./bg-main.webp"
+import { useNavigate } from "react-router";
 
 
 export default function Sample1() {
 
     const {isloggedin} = useContext(UserContext)
+    const {setnextPageUrl} = useContext(UserContext)
     const {inputvalue} = useContext(UserContext)
     const [imagedata,setimagedata] = useState('')
     const [videodata,setvideodata] = useState('')
@@ -17,6 +20,7 @@ export default function Sample1() {
     const [pageno,setpageno] = useState("1")
     const[query,setquery] = useState('trending')
     const[activetab,setactivetab] = useState('Home')
+    const Navigate = useNavigate()
     console.log(inputvalue)
 
     useEffect(() => {
@@ -30,7 +34,7 @@ export default function Sample1() {
     // Image Loader
    useEffect(() =>{
     setloader(true)
-    fetch(`https://api.pexels.com/v1/search/?page=${pageno}&query=${query}&per_page=20`,{
+    fetch(`https://api.pexels.com/v1/search/?page=${pageno}&query=${query}&per_page=15`,{
         headers:{
             Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
         }
@@ -48,7 +52,7 @@ export default function Sample1() {
   //  Video Loader
    useEffect(() =>{
     setloader(true)
-    fetch(`https://api.pexels.com/videos/search?page=${pageno}&query=${query}&per_page=20`,{
+    fetch(`https://api.pexels.com/videos/search?page=${pageno}&query=${query}&per_page=15`,{
         headers:{
             Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
         }
@@ -80,9 +84,10 @@ export default function Sample1() {
    }
    
    const imagesize = (index) =>{
-     setIsOpen(true)
+     setIsOpen(false)
      console.log("clicked",index)
-     setimageoverlay(imagedata.photos?.[index]?.src?.original)
+     setnextPageUrl(imagedata.photos?.[index]?.src?.original)
+     Navigate("/image")
    }
 
     
@@ -93,7 +98,12 @@ export default function Sample1() {
     return(
         
       <div
-      className={`w-full md:pl-1 md:pr-1 md:pt-10 md:pb-20 p-10  text-black transition-all transform-easeIn relative ${isloggedin ? "visible" : "hidden"}`}>
+      style={{
+        backgroundImage: `url(${bg_1})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}
+      className={` w-full md:pt-10 md:pb-20 p-5  text-black transition-all transform-easeIn relative ${isloggedin ? "visible" : "hidden"}`}>
          {isOpen && (
             <motion.div
             initial={
@@ -107,7 +117,7 @@ export default function Sample1() {
             {{x:0,
               scale:1
             }}
-            className=" h-200 p-  md:w-full md:h- inset-0 backdrop-blur-2xl z-100 absolute md:p-10 md:pb-10 flex items-center top-0 left-0 md:top-100 bottom-0 right-0 ">
+            className="absolute h-screen  p-  md:w-full   backdrop-blur-md bg-black/70  flex items-center  ">
             <motion.button
             className="pr-2 absolute top-0 right-0 md:p-10 cursor-pointer"
             onClick={()=>setIsOpen(false)}    
@@ -115,7 +125,7 @@ export default function Sample1() {
             >  
             <svg className=" w-10 md:w-10 " xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path fill="#e60a0a" d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
             </motion.button>
-                <img className=" w-full h-200   bottom-0 " src={imageoverlay} alt="" />
+                {/* <img className=" w-full h-200   bottom-0 " src={imageoverlay} alt="" /> */}
             </motion.div>
             
             )}
