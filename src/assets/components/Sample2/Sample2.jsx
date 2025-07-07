@@ -160,7 +160,7 @@ export default function Sample1() {
                                    
                                    
                                     </div>
-                                    <div className=" flex justify-evenly relative  ">
+                                    <div className=" flex justify-evenly relative mb-2 ">
                                     <button className="p-4 text-[18px] rounded-3xl bg-[#e60023] text-white">
                                       Save
                                     </button> 
@@ -183,10 +183,9 @@ export default function Sample1() {
                               <div className="w-full flex items-center justify-center">
                                 <div className="flex justify-center items-center w-full ">
                                       <div 
-                                      style={{aspectRatio : "0 / 0.1",width: 'calc(12 / var(--g-cols) * 100%)'}}
                                       className=" pl-10 pr-10 overflow-hidden object-contain w-60  aspect-[0.5 / 1] rounded-b-4xl items-center justify-center contents">
                                           
-                                                  <div className="w-[25%]">
+                                                  <div className="md:w-[25%] w-[100%]">
                                                        <img
                                                        className="rounded-4xl   object-contain  top-0 bottom-0   " src={nextPageUrl} alt="" />
 
