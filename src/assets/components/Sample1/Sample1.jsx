@@ -3,12 +3,14 @@ import React, { useContext, useEffect, useState } from "react"
 import UserContext from "../context/UserContext"
 import bg_1 from "./bg-main.webp"
 import { useNavigate } from "react-router";
+import { lazy } from "react";
 
 
 export default function Sample1() {
 
     const {isloggedin} = useContext(UserContext)
     const {setnextPageUrl} = useContext(UserContext)
+    const {setPagetype} = useContext(UserContext)
     const {inputvalue} = useContext(UserContext)
     const [imagedata,setimagedata] = useState('')
     const [videodata,setvideodata] = useState('')
@@ -27,7 +29,7 @@ export default function Sample1() {
         setquery(inputvalue);
       }, [inputvalue]);
 
-      // console.log(userdata)
+
 
       
 
@@ -85,16 +87,46 @@ export default function Sample1() {
    
    const imagesize = (index) =>{
      setIsOpen(false)
-     console.log("clicked",index)
+     setPagetype("photos")
      setnextPageUrl(imagedata.photos?.[index]?.src?.original)
      Navigate("/image")
    }
 
+   const videosize = (index) =>{
+    setIsOpen(false)
+    setPagetype("videos")
+    setnextPageUrl(videodata.videos?.[index]?.video_files?.[2].link)
+    Navigate("/image")
+  }
+
+
+    const renderPhotos = (photos, useOriginal = false) => 
+    photos?.map((photo, index) => (
+      <button onClick={() => imagesize(index)} className="cursor-pointer" key={`photo-${index}`}>
+        <motion.img
+          className={`${useOriginal ? "pt-4" : "w-full"} rounded-4xl`}
+          whileTap={{ scale: 0.5 }}
+          src={useOriginal ? photo.src?.original : photo.src?.portrait}
+          alt=""
+        />
+      </button>
+    ));
+
+  const renderVideos = (videos) =>
+    videos?.map((video, index) => (
+      <button onClick={() => videosize(index)} className="cursor-pointer" key={`video-${index}`}>
+        <motion.video
+          autoPlay muted loop
+          className="w-full pt-4 rounded-4xl"
+          whileTap={{ scale: 0.5 }}
+          src={video?.video_files?.[2].link}
+        />
+      </button>
+    ));
+
     
-   console.log(imagedata)
+ 
    
-   console.log(videodata.videos?.[0]?.video_files?.[0].link)
-  
     return(
         
       <div
@@ -133,73 +165,32 @@ export default function Sample1() {
         <div className="w-full text-black text-2xl">
           <div className="w-full flex flex-col items-center ">
           <div className="w-full flex flex-row p-4 items-center justify-center">
-            <button onClick={()=>setactivetab("Home")}  className={`p-3 mr-3 rounded-full  text-black text-[18px]  border-2 border-black cursor-pointer hover:text-black ${activetab ==="Home" ? "bg-transparent text-black" :"bg-black text-white"}`}> Home</button>
-            <button onClick={()=>setactivetab("Photos")}  className={`p-3 mr-3 rounded-full  text-black text-[18px]  border-2 border-black cursor-pointer hover:text-black ${activetab ==="Photos" ? "bg-transparent text-black" :"bg-black text-white"}`}> Photos</button>
-            <button onClick={()=>setactivetab("Videos")}  className={`p-3 mr-3 rounded-full  text-black text-[18px]  border-2 border-black cursor-pointer hover:text-black ${activetab ==="Videos" ? "bg-transparent text-black" :"bg-black text-white"}`}> Videos</button>
+            <button onClick={()=>setactivetab("Home")}  className={`p-2 md:p-3 md:mr-3 rounded-full  text-black md:text-[18px] text-[5px] border-2 border-black cursor-pointer hover:text-black ${activetab ==="Home" ? "bg-transparent text-black" :"bg-black text-white"}`}> Home</button>
+            <button onClick={()=>setactivetab("Photos")}  className={`p-2 md:p-3 md:mr-3 rounded-full  text-black md:text-[18px] text-[5px]  border-2 border-black cursor-pointer hover:text-black ${activetab ==="Photos" ? "bg-transparent text-black" :"bg-black text-white"}`}> Photos</button>
+            <button onClick={()=>setactivetab("Videos")}  className={`p-2 md:p-3 md:mr-3 rounded-full  text-black md:text-[18px] text-[5px]  border-2 border-black cursor-pointer hover:text-black ${activetab ==="Videos" ? "bg-transparent text-black" :"bg-black text-white"}`}> Videos</button>
           </div> 
-          <p className="pl-3 w-60 font-serif">Free Stock {activetab}</p>
+          <p className="pl-3 w-full font-serif">Free Stock {activetab}</p>
 
             
           </div>
-            <div className="columns-2 md:columns-3 lg:columns-4 gap-4 p-4">
+            <div className="columns-3 md:columns-4 lg:columns-5 gap-4 p-4">
                <div className="font-bold font-sans  w-full flex items-center"> 
                {error}
                
                </div> 
-               {
-                  activetab === "Home" ? (
-                    <>
-                    {imagedata.photos?.map((photo, index) => (
-                      <button onClick={() => imagesize(index)} className="cursor-pointer" key={index}>
-                        <motion.img
-                          className="pt-4 rounded-4xl"
-                          whileTap={{ scale: 0.5 }}
-                          src={photo.src?.original}
-                          alt=""
-                        />
-                      </button>
-                    ))}
-                         
-              {videodata.videos?.map((video,index) => (
-                <button onClick={() => imagesize(index)}
-                className="cursor-pointer">
-              <motion.video 
-                autoPlay muted loop
-                className=" pt-4 rounded-4xl "
-                whileTap={{scale:0.5}}
-                key={index}
-                src={video?.video_files?.[0].link} 
-                alt="" />  
-                </button>
-            ))}
-            </>
-            ) : activetab=== "Photos" ? (
-                    imagedata.photos?.map((photo, index) => (
-                      <button onClick={() => imagesize(index)} className="cursor-pointer" key={index}>
-                        <motion.img
-                          className="pt-4 rounded-4xl"
-                          whileTap={{ scale: 0.5 }}
-                          src={photo.src?.original}
-                          alt=""
-                        />
-                      </button>
-                    ))
-                  ) : activetab === "Videos" ? (
-                    videodata.videos?.map((video,index) => (
-                      <button onClick={() => imagesize(index)}
-                      className="cursor-pointer">
-                    <motion.video 
-                      autoPlay muted loop
-                      className=" pt-4 rounded-4xl "
-                      whileTap={{scale:0.5}}
-                      key={index}
-                      src={video?.video_files?.[0].link} 
-                      alt="" />  
-                      </button>
-                  ))
-                  ):null
-                }
-            </div>
+               <>
+                 {activetab === "Home" && (
+                  <>
+                  {renderPhotos(imagedata.photos)}
+                  {renderVideos(videodata.videos)}
+                </>
+              )}
+
+              {activetab === "Photos" && renderPhotos(imagedata.photos, true)}
+
+              {activetab === "Videos" && renderVideos(videodata.videos)}
+              </>
+             </div>
            
         </div>
         {loader && (
@@ -214,7 +205,7 @@ export default function Sample1() {
             
             )}
         
-        <div className="w-full text-white font-bold flex items-center justify-center p-5">
+        <div className="w-full\ text-white font-bold flex  p-5">
         
       <motion.button 
        whileTap={{scale:0.8}}

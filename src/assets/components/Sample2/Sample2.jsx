@@ -9,6 +9,7 @@ export default function Sample1() {
     const {isloggedin} = useContext(UserContext)
     const {nextPageUrl} = useContext(UserContext)
     const {inputvalue} = useContext(UserContext)
+    const {Pagetype} = useContext(UserContext)
     const [imagedata,setimagedata] = useState('')
     const [videodata,setvideodata] = useState('')
     const [error,setError] = useState(null)
@@ -21,7 +22,6 @@ export default function Sample1() {
     const[activetab,setactivetab] = useState('Home')
 
 
-    console.log("imageurl incoming",nextPageUrl)
 
 
 
@@ -29,8 +29,7 @@ export default function Sample1() {
         setquery(inputvalue);
       }, [inputvalue]);
 
-      // console.log(userdata)
-
+    
       
 
     // Image Loader
@@ -50,6 +49,9 @@ export default function Sample1() {
         
     })
    },[query,counter])
+
+
+   
 
   //  Video Loader
    useEffect(() =>{
@@ -87,12 +89,34 @@ export default function Sample1() {
    
    const imagesize = (index) =>{
      setIsOpen(true)
-     console.log("clicked",index)
      setimageoverlay(nextPageUrl)
    }
 
+
+   const rendering = (nextPageUrl) => {
+
+    if(Pagetype=="photos"){
+      return(
+        <>
+        <img
+         className="rounded-4xl   object-contain  top-0 bottom-0   " src={nextPageUrl} alt="" />
+        </>
+      )
+    }else {
+      return(
+        <>
+        <video
+        autoPlay muted loop
+         className="rounded-4xl   object-contain  top-0 bottom-0   " src={nextPageUrl} alt="" />
+        </>
+      )
     
-   console.log(imagedata)
+    }
+
+
+
+    }
+    
    
   
     return(
@@ -185,9 +209,10 @@ export default function Sample1() {
                                       <div 
                                       className=" pl-10 pr-10 overflow-hidden object-contain w-60  aspect-[0.5 / 1] rounded-b-4xl items-center justify-center contents">
                                           
-                                                  <div className="md:w-[25%] w-[100%]">
-                                                       <img
-                                                       className="rounded-4xl   object-contain  top-0 bottom-0   " src={nextPageUrl} alt="" />
+                                                  <div className="md:w-[20%] w-[100%]">
+
+                                                  {rendering(nextPageUrl)}
+                                                    
 
                                                   </div>                                                
                                                   
@@ -236,7 +261,7 @@ export default function Sample1() {
                 autoPlay muted loop
                 whileTap={{scale:0.5}}
                 key={index}
-                src={video?.video_files?.[0].link} 
+                src={video?.video_files?.[2].link} 
                 alt="" />  
                 </button>
             ))}
@@ -261,7 +286,7 @@ export default function Sample1() {
                       className=" pt-4 rounded-4xl "
                       whileTap={{scale:0.5}}
                       key={index}
-                      src={video?.video_files?.[0].link} 
+                      src={video?.video_files?.[2].link} 
                       alt="" />  
                       </button>
                   ))

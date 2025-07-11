@@ -6,8 +6,9 @@ const UserContextProvider = ({children}) =>{
     const [inputvalue,setinputvalue] = useState("trending")
     const [isloggedin,setisloggedin] = useState(true)
     const [nextPageUrl,setnextPageUrl] = useState()
+    const [Pagetype,setPagetype] = useState("photo")
     return(
-        <UserContext.Provider value ={{userdata,setuserdata,inputvalue,setinputvalue,isloggedin,setisloggedin,nextPageUrl,setnextPageUrl}}>
+        <UserContext.Provider value ={{userdata,setuserdata,inputvalue,setinputvalue,isloggedin,setisloggedin,nextPageUrl,setnextPageUrl,Pagetype,setPagetype}}>
         {children}
         </UserContext.Provider>
     )   

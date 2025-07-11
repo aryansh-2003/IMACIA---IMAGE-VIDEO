@@ -1,9 +1,9 @@
-import { StrictMode } from 'react'
+import { lazy, StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { createBrowserRouter,RouterProvider } from 'react-router'
-import Header from './assets/components/Header/Header'
-import Sample1 from './assets/components/Sample1/Sample1'
+const Header = lazy(()=>import('./assets/components/Header/Header'))
+const Sample1 = lazy(()=>import('./assets/components/Sample1/Sample1'))
 import Sample2 from './assets/components/Sample2/Sample2'
 import UserContextProvider from './assets/components/context/UserContextProvider'
 import Signin from './assets/components/login and signup/Signin'
@@ -13,6 +13,7 @@ const router = createBrowserRouter([
   {
     path:'/',
     element:<Signin/>,
+    
     
   },
   {

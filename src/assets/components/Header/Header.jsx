@@ -5,6 +5,7 @@ import { useContext } from "react";
 import UserContext from "../context/UserContext";
 
 
+
 export default function Header(){
 
 
@@ -19,14 +20,14 @@ export default function Header(){
 
 
     useEffect(() =>{
-        fetch(`https://api.pexels.com/v1/search/?page=1&query=nature&per_page=20`,{
+        fetch(`https://api.pexels.com/v1/search/?page=1&query=nature&per_page=40`,{
             headers:{
                 Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
             }
         })
         .then((res)=>{return res.json()})
         .then((data)=>{
-            setimage(data.photos?.[Math.floor(Math.random()*(20-1)+1)]?.src.original)
+            setimage(data.photos?.[Math.floor(Math.random()*(40-1)+1)]?.src.original)
             setimagedata(data)
         })
         .catch((err)=>{
@@ -39,9 +40,7 @@ export default function Header(){
 
     useEffect(()=>{
         if (userdata) {
-            console.log(userdata)
             let user = userdata.user.displayName
-            console.log(userdata.user.displayName)
             setusername(user)
             setisloggedin(true)
         }else{
@@ -90,12 +89,12 @@ export default function Header(){
 
              </nav>
 
-             <div className="md:w-full max-w-2.5  min-h-100   flex items-center justify-center" >
-                <div className=" pt-12 md:text-3xl text-white flex flex-col items-center justify-center">
-                    <p className="md:w-full w-70">The best free stock photos, royalty free images & videos shared by creators.</p>
-                    <div className="md:w-150 p-2 rounded-2xl mt-8 relative bg-white flex flex-row items-center justify-center
+             <div className="md:w-full  min-h-100   flex items-center justify-center" >
+                <div className="font-mono pt-12 md:text-3xl text-white flex flex-col items-center justify-center">
+                    <p className=" font-serif text-2xl">The best free stock photos, royalty free images & videos shared by creators.</p>
+                    <div className=" w-full p-2  mt-8 relative  flex flex-row items-center justify-center
                     ">
-                    <input className="w-full  border-none rounded-2xl p-2 text-gray-800 text-[20px] " placeholder="Search Images & Videos"  type="text"
+                    <input className="w-full bg-white  border-none rounded-2xl p-3  text-gray-800 text-[20px] " placeholder="Search Images & Videos"  type="text"
                     onChange={(e)=>setquery(e.target.value)}
                     >
                     </input>
@@ -104,7 +103,7 @@ export default function Header(){
                          type="button"
                          onClick={querysetter}
                          whileTap={{scale:0.8}}
-                         className=" w-10 pb-2 pr-3 pt-1 absolute right-0"><img src="https://upload.wikimedia.org/wikipedia/meta/thumb/7/7e/Vector_search_icon.svg/945px-Vector_search_icon.svg.png" alt="" />
+                         className=" w-10 pb-2 mr-2 pr-3 pt-1 absolute right-0"><img src="https://upload.wikimedia.org/wikipedia/meta/thumb/7/7e/Vector_search_icon.svg/945px-Vector_search_icon.svg.png" alt="" />
                          </motion.button>
                     </div>
                     
