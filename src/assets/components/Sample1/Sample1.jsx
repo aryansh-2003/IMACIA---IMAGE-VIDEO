@@ -36,7 +36,7 @@ export default function Sample1() {
     // Image Loader
    useEffect(() =>{
     setloader(true)
-    fetch(`https://api.pexels.com/v1/search/?page=${pageno}&query=${query}&per_page=1`,{
+    fetch(`https://api.pexels.com/v1/search/?page=${pageno}&query=${query}&per_page=20`,{
         headers:{
             Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
         }
@@ -54,7 +54,7 @@ export default function Sample1() {
   //  Video Loader
    useEffect(() =>{
     setloader(true)
-    fetch(`https://api.pexels.com/videos/search?page=${pageno}&query=${query}&per_page=2`,{
+    fetch(`https://api.pexels.com/videos/search?page=${pageno}&query=${query}&per_page=20`,{
         headers:{
             Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
         }
