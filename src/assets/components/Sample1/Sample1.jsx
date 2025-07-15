@@ -1,5 +1,5 @@
 import { motion } from "motion/react"
-import React, { useContext, useEffect, useState } from "react"
+import React, { useContext, useEffect, useRef, useState } from "react"
 import UserContext from "../context/UserContext"
 import bg_1 from "./bg-main.webp"
 import { useNavigate } from "react-router";
@@ -36,7 +36,7 @@ export default function Sample1() {
     // Image Loader
    useEffect(() =>{
     setloader(true)
-    fetch(`https://api.pexels.com/v1/search/?page=${pageno}&query=${query}&per_page=15`,{
+    fetch(`https://api.pexels.com/v1/search/?page=${pageno}&query=${query}&per_page=1`,{
         headers:{
             Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
         }
@@ -54,7 +54,7 @@ export default function Sample1() {
   //  Video Loader
    useEffect(() =>{
     setloader(true)
-    fetch(`https://api.pexels.com/videos/search?page=${pageno}&query=${query}&per_page=15`,{
+    fetch(`https://api.pexels.com/videos/search?page=${pageno}&query=${query}&per_page=2`,{
         headers:{
             Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
         }
@@ -102,27 +102,49 @@ export default function Sample1() {
 
     const renderPhotos = (photos, useOriginal = false) => 
     photos?.map((photo, index) => (
+      <div className="w-full flex align-center justify-center pt-4">
       <button onClick={() => imagesize(index)} className="cursor-pointer" key={`photo-${index}`}>
         <motion.img
-          className={`${useOriginal ? "pt-4" : "w-full"} rounded-4xl`}
+          className={`${useOriginal ? "pt-4" : "w-full"} rounded-4xl `}
           whileTap={{ scale: 0.5 }}
           src={useOriginal ? photo.src?.original : photo.src?.portrait}
           alt=""
         />
       </button>
+      </div>
     ));
+    
+    const videoRef = useRef(null)
+
+    console.log(videoRef)
+
+    const handleHoverEnter= () => {
+      
+        videoRef.current.play()
+    }
+
+    const handleHoverLeave= () => {
+      
+      videoRef.current.pause()
+  }
 
   const renderVideos = (videos) =>
     videos?.map((video, index) => (
+      <div className="w-full flex align-center justify-center ">
       <button onClick={() => videosize(index)} className="cursor-pointer" key={`video-${index}`}>
         <motion.video
-          autoPlay muted loop
-          className="w-full pt-4 rounded-4xl"
+        ref={videoRef}
+           muted 
+           onMouseEnter={handleHoverEnter}
+           onMouseLeave={handleHoverLeave}
+          className="w-full pt-4 rounded-4xl "
           whileTap={{ scale: 0.5 }}
           src={video?.video_files?.[2].link}
         />
       </button>
+      </div>
     ));
+  
 
     
  
@@ -173,7 +195,7 @@ export default function Sample1() {
 
             
           </div>
-            <div className="columns-3 md:columns-4 lg:columns-5 gap-4 p-4">
+            <div className="columns-3 md:columns-4 lg:grid-rows-4 gap-4 p-4">
                <div className="font-bold font-sans  w-full flex items-center"> 
                {error}
                
@@ -186,7 +208,7 @@ export default function Sample1() {
                 </>
               )}
 
-              {activetab === "Photos" && renderPhotos(imagedata.photos, true)}
+              {/* {activetab === "Photos" && renderPhotos(imagedata.photos, true)} */}
 
               {activetab === "Videos" && renderVideos(videodata.videos)}
               </>
