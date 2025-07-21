@@ -45,7 +45,7 @@ export default function Sample1() {
     // Image Loader
    useEffect(() => {
     setloader(true)
-    fetch(`https://api.pexels.com/v1/search/?page=${pageno}&query=${query}&per_page=20`,{
+    fetch(`https://api.pexels.com/v1/search/?page=${pageno}&query=${query}&per_page=40`,{
         headers:{
             Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
         }
@@ -64,23 +64,23 @@ export default function Sample1() {
     })
    },[query,counter,retry,setretry])
 
-  //  Video Loader
-   useEffect(() =>{
-    setloader(true)
-    fetch(`https://api.pexels.com/videos/search?page=${pageno}&query=${query}&per_page=20`,{
-        headers:{
-            Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
-        }
-    })
-    .then((res)=>{return res.json()})
-    .then((data)=>{setvideodata(data) , setError(null),setloader(false)})
-    .catch((err)=>{
-        console.error("fetch error:",err)
-        setError("connect to internet ")
-        setloader(false)
+  // //  Video Loader
+  //  useEffect(() =>{
+  //   setloader(true)
+  //   fetch(`https://api.pexels.com/videos/search?page=${pageno}&query=${query}&per_page=20`,{
+  //       headers:{
+  //           Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
+  //       }
+  //   })
+  //   .then((res)=>{return res.json()})
+  //   .then((data)=>{setvideodata(data) , setError(null),setloader(false)})
+  //   .catch((err)=>{
+  //       console.error("fetch error:",err)
+  //       setError("connect to internet ")
+  //       setloader(false)
         
-    })
-   },[query,counter,retry,setretry])
+  //   })
+  //  },[query,counter,retry,setretry])
 
 
 
@@ -132,15 +132,12 @@ export default function Sample1() {
     photos?.map((photo, index) => (
       <div className="w-full flex align-center justify-center pt-4">
       <button onClick={() => imagesize(index)} className="cursor-pointer" key={`photo-${index}`}>
-      <BackgroundGradient className="rounded-4xl  ">
         <motion.img
           className={`${useOriginal ? "pt-4" : "w-full"} rounded-4xl `}
           whileTap={{ scale: 0.5 }}
           src={useOriginal ? photo.src?.original : photo.src?.portrait}
           alt=""
         />
-        </BackgroundGradient> 
-  
       </button>
       </div>
     ));
@@ -158,24 +155,24 @@ export default function Sample1() {
       videoRef.current.pause()
   }
 
-  const renderVideos = (videos) =>
-    videos?.map((video, index) => (
-      <div className="w-full flex align-center justify-center mt-5 ">
-      <button onClick={() => videosize(index)} className="cursor-pointer" key={`video-${index}`}>
-      <BackgroundGradient className="rounded-4xl  ">
-        <motion.video
-           ref={videoRef}
-           muted 
-           onMouseEnter={handleHoverEnter}
-          //  onMouseLeave={handleHoverLeave}
-          className="w-full  rounded-4xl "
-          whileTap={{ scale: 0.5 }}
-          src={video?.video_files?.[2].link}
-        />
-         </BackgroundGradient>
-      </button>
-      </div>
-    ));
+  // const renderVideos = (videos) =>
+  //   videos?.map((video, index) => (
+  //     <div className="w-full flex align-center justify-center mt-5 ">
+  //     <button onClick={() => videosize(index)} className="cursor-pointer" key={`video-${index}`}>
+  //     <BackgroundGradient className="rounded-4xl  ">
+  //       <motion.video
+  //          ref={videoRef}
+  //          muted 
+  //          onMouseEnter={handleHoverEnter}
+  //         //  onMouseLeave={handleHoverLeave}
+  //         className="w-full  rounded-4xl "
+  //         whileTap={{ scale: 0.5 }}
+  //         src={video?.video_files?.[2].link}
+  //       />
+  //        </BackgroundGradient>
+  //     </button>
+  //     </div>
+  //   ));
     
     
     
@@ -187,7 +184,7 @@ export default function Sample1() {
       
       <div
       
-      className={` w-full md:pt-10 md:pb-20 p-5  text-black transition-all transform-easeIn bg-black relative ${isloggedin ? "hidden" : "visible"}`}>
+      className={` w-full md:pt-10 md:pb-20 p-5  text-black transition-all transform-easeIn bg-black relative ${isloggedin ? "visible" : "hidden"}`}>
         
   
           <div className="w-full text-black text-2xl">
@@ -217,13 +214,13 @@ export default function Sample1() {
                  {activetab === "Home" && (
                   <>
                   {renderPhotos(imagedata.photos)}
-                  {renderVideos(videodata.videos)}
+                  {/* {renderVideos(videodata.videos)} */}
                 </>
               )}
 
               {activetab === "Photos" && renderPhotos(imagedata.photos, true)}
 
-              {activetab === "Videos" && renderVideos(videodata.videos)}
+              {/* {activetab === "Videos" && renderVideos(videodata.videos)} */}
               </>
              </div>
            

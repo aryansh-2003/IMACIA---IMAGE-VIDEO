@@ -91,7 +91,7 @@ export default function Header(){
           </div>
          
 
-            <div className={`w-full backdrop-blur-2xl h-screen absolute z-200 items-center justify-center  ${isloggedin ? "flex" : "hidden"} `}>
+            <div className={`w-full backdrop-blur-2xl h-screen absolute z-200 items-center justify-center  ${isloggedin ? "hidden" : "flex"} `}>
                 <div className=" p-20 bg-[#0f171e] flex flex-col justify-center items-center rounded-2xl">
                     <p className="text-3xl text-white">Please Log in First</p>
                     <button
