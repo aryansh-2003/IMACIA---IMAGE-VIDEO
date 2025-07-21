@@ -3,6 +3,12 @@ import Logo from "./logo of.png"
 import { motion } from "motion/react"
 import { useContext } from "react";
 import UserContext from "../context/UserContext";
+import { Navigate, useNavigate } from "react-router";
+import { Stars } from "@react-three/drei";
+import { Canvas } from "@react-three/fiber";
+import { PlaceholdersAndVanishInput } from "../ui/placeholders-and-vanish-input";
+import Galaxy from '../Header/Galaxy';
+    
 
 
 
@@ -13,9 +19,19 @@ export default function Header(){
     const [imagedata,setimagedata] = useState()
     const {isloggedin,setisloggedin} = useContext(UserContext)
     const [username,setusername] = useState("")
+    const [getinput,setgetinput] = useState()
     const {userdata} = useContext(UserContext)
     const [query, setquery] = useState("dog")
     const {setinputvalue} = useContext(UserContext)
+    const Navigate = useNavigate()
+
+    const placeholders = [
+        "Animals",
+        "Boy playing football ",
+        "Supercars",
+        "Sea Shores",
+        "cricket",
+      ]
 
 
 
@@ -44,30 +60,52 @@ export default function Header(){
             setusername(user)
             setisloggedin(true)
         }else{
-            setisloggedin(true)
+            setisloggedin(false)
         }
     },[userdata])
+
+
+
+    const handleChange = (e) => {
+        setgetinput(e.target.value)
+      };
+
+      const onSubmit = (value) => {
+     setinputvalue(getinput)
+      console.log(getinput)
+       
+      };
  
 
    const querysetter = () =>{
-        setinputvalue(query)
+        console.log(query)
    }
      
 
     return(
-        <header className="shadow bg-center md:min-h-125  z-100 relative bg-white top-0  flex flex-col w-full items-center backdrop-blur-3xl"
-        style={{backgroundImage:`url(${image})`,WebkitBackgroundSize:"cover"}}>
+        <header className="shadow bg-center md:min-h-125   relative bg-black top-0  flex flex-col w-full items-center backdrop-blur-3xl"
+        >
+            
+            <div classname="absolute -z-100"style={{ width: '100%', height: '100%', position: 'absolute', zIndex:"0"  }}>
+          <Galaxy />
+          </div>
          
 
-            <div className={`w-full backdrop-blur-2xl h-screen absolute z-200 items-center justify-center  ${isloggedin ? "hidden" : "flex"} `}>
+            <div className={`w-full backdrop-blur-2xl h-screen absolute z-200 items-center justify-center  ${isloggedin ? "flex" : "hidden"} `}>
                 <div className=" p-20 bg-[#0f171e] flex flex-col justify-center items-center rounded-2xl">
                     <p className="text-3xl text-white">Please Log in First</p>
-                    <button className="text-[#00a8e1] text-2xl cursor-pointer mt-4">Log in</button>
+                    <button
+                    onClick={()=>Navigate('/')}
+                     className="text-[#00a8e1] text-2xl cursor-pointer mt-4">Log in</button>
                 </div>
             </div>
 
 
             <nav className=" flex w-full flex-row justify-around ">
+
+
+            
+                
                 
                 <div className="">
                 <img className="w-20" src={Logo} alt="" 
@@ -90,11 +128,16 @@ export default function Header(){
              </nav>
 
              <div className="md:w-full  min-h-100   flex items-center justify-center" >
-                <div className="font-mono pt-12 md:text-3xl text-white flex flex-col items-center justify-center">
+                <div className="font-mono pt-12 md:text-3xl text-white flex flex-col items-center justify-center ">
+                    
                     <p className=" font-serif text-2xl">The best free stock photos, royalty free images & videos shared by creators.</p>
                     <div className=" w-full p-2  mt-8 relative  flex flex-row items-center justify-center
                     ">
-                    <input className="w-full bg-white  border-none rounded-2xl p-3  text-gray-800 text-[20px] " placeholder="Search Images & Videos"  type="text"
+
+
+                    <PlaceholdersAndVanishInput placeholders={placeholders} onChange={handleChange} onSubmit={onSubmit} />
+                        
+                    {/* <input className="w-full bg-white  border-none rounded-2xl p-3  text-gray-800 text-[20px] " placeholder="Search Images & Videos"  type="text"
                     onChange={(e)=>setquery(e.target.value)}
                     >
                     </input>
@@ -104,7 +147,7 @@ export default function Header(){
                          onClick={querysetter}
                          whileTap={{scale:0.8}}
                          className=" w-10 pb-2 mr-2 pr-3 pt-1 absolute right-0"><img src="https://upload.wikimedia.org/wikipedia/meta/thumb/7/7e/Vector_search_icon.svg/945px-Vector_search_icon.svg.png" alt="" />
-                         </motion.button>
+                         </motion.button> */}
                     </div>
                     
                 </div>

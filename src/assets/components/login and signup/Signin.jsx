@@ -5,6 +5,7 @@ import { getAuth , createUserWithEmailAndPassword,signInWithEmailAndPassword } f
 import UserContext from "../context/UserContext";
 import { motion } from "motion/react"
 import { useNavigate } from "react-router";
+import { AuroraBackground } from "../ui/aurora-background";
 
 
 
@@ -72,8 +73,8 @@ export default function Signin(){
 
     return(
         <> 
-       
-        <div className="w-full relative h-screen  flex items-center justify-center p-5 bg-[#0f171e] ">
+        <AuroraBackground>       
+        <div className="w-full relative h-screen  flex items-center justify-center p-5">
             <div className="w-full  flex flex-col justify-center items-center">
 
 
@@ -86,7 +87,15 @@ export default function Signin(){
           <div
            animate={{x:-100}}
            className="w-full flex items-center justify-center mt-4">
-                <div className="bg-[#1a242f] w-100 p-8 text-white rounded-xl" >
+                <motion.div 
+                 initial={{ opacity: 0.0, y: 40 }}
+                 whileInView={{ opacity: 1, y: 0 }}
+                 transition={{
+                   delay: 0.3,
+                   duration: 0.8,
+                   ease: "easeInOut",
+                 }}
+                className=" w-100 p-8 backdrop-blur-2xl bg-white/5 text-white rounded-xl" >
                     <h1 
                     className="text-2xl font-bold">Sign in</h1>
                     <div className="w-full mt-3 flex flex-col">
@@ -121,10 +130,11 @@ export default function Signin(){
                       <p>New to Imacia? <button onClick={signuppage} className="text-[#00a8e1] cursor-pointer">Create an account</button></p>
                     </div>
 
-                </div>
+                </motion.div>
           </div>
 
           {/* Reset Password Sec */}
+          
 
           <div
            className={`absolute top-0 right-0 left-0 bottom-0 backdrop-blur-2xl w-full flex items-center justify-center mt-4  ${passwordresetoverlay ? 'visible' : 'hidden'}`  }>
@@ -189,6 +199,8 @@ export default function Signin(){
         </div>
           
         </div>
+        </AuroraBackground>
+
 
         </>
 
