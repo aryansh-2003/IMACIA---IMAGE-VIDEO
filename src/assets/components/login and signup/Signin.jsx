@@ -73,7 +73,9 @@ export default function Signin(){
 
     return(
         <> 
-        <AuroraBackground>       
+        <AuroraBackground className={"bg-black"}
+
+        >       
         <div className="w-full relative h-screen  flex items-center justify-center p-5">
             <div className="w-full  flex flex-col justify-center items-center">
 
@@ -95,7 +97,7 @@ export default function Signin(){
                    duration: 0.8,
                    ease: "easeInOut",
                  }}
-                className=" w-100 p-8 backdrop-blur-2xl bg-white/5 text-white rounded-xl" >
+                className=" w-100 p-8 backdrop-blur-xl bg-white/5 text-white rounded-xl" >
                     <h1 
                     className="text-2xl font-bold">Sign in</h1>
                     <div className="w-full mt-3 flex flex-col">
