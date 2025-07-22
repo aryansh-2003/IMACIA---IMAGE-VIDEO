@@ -63,6 +63,7 @@ export default function Sample1() {
         
     })
    },[query,counter,retry,setretry])
+   console.log(imagedata)
 
   // //  Video Loader
   //  useEffect(() =>{
@@ -117,15 +118,10 @@ export default function Sample1() {
      setIsOpen(false)
      setPagetype("photos")
      setnextPageUrl(imagedata.photos?.[index]?.src?.original)
-     Navigate("/image")
+     Navigate("/Home/image")
    }
 
-   const videosize = (index) =>{
-    setIsOpen(false)
-    setPagetype("videos")
-    setnextPageUrl(videodata.videos?.[index]?.video_files?.[2].link)
-    Navigate("/image")
-  }
+  
 
 
     const renderPhotos = (photos, useOriginal = false) => 

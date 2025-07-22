@@ -3,7 +3,7 @@ import UserContext from "./UserContext";
 
 const UserContextProvider = ({children}) =>{
     const [userdata,setuserdata] = useState(null)
-    const [inputvalue,setinputvalue] = useState("trending")
+    const [inputvalue,setinputvalue] = useState("random")
     const [isloggedin,setisloggedin] = useState(false)
     const [nextPageUrl,setnextPageUrl] = useState()
     const [Pagetype,setPagetype] = useState("photo")

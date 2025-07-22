@@ -8,6 +8,7 @@ import Sample2 from './assets/components/Sample2/Sample2'
 import UserContextProvider from './assets/components/context/UserContextProvider'
 import Signin from './assets/components/login and signup/Signin'
 import Signup from './assets/components/login and signup/Signup'
+import Layout from './Layout'
 
 const router = createBrowserRouter([
   {
@@ -24,21 +25,17 @@ const router = createBrowserRouter([
   },
   {
     path:'/Home',
-    element:(
-      <>
-      <Header/>
-      <Sample1/>
-      </>
-    )
-    
-  },
-  {
-    path:'/image',
-    element:(
-      <>
-      <Sample2/>
-      </>
-    )
+    element: <Layout/>,
+    children:[
+      {
+        path:"",
+        element: <Sample1/>
+      },
+      {
+        path:"image",
+        element: <Sample2/>
+      }
+    ]
     
   }
 ])
