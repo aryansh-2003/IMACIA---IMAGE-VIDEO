@@ -1,410 +1,345 @@
-import { motion } from "motion/react"
-import {Card, CardFooter, Image, Button} from "@heroui/react";
-import React, { useContext, useEffect, useState } from "react"
-import UserContext from "../context/UserContext"
-import bg_1 from "./alpe-di-siusi-sunrise-with-sassolungo-or-langkofel-royalty-free-image-1623254127.avif"
-import LightRays from './LightRays';
-import { ReactLenis, useLenis } from 'lenis/react'
+import { motion, AnimatePresence } from "motion/react";
+import React, { useContext, useEffect, useState } from "react";
+import UserContext from "../context/UserContext";
+import { useParams } from "react-router";
+import { ReactLenis } from "lenis/react";
 
+export default function Sample2() {
+  const { isloggedin, nextPageUrl, setnextPageUrl, inputvalue, Pagetype } = useContext(UserContext);
+  const { encodedImage, description } = useParams();
 
-export default function Sample1() {
+  const [imagedata, setimagedata] = useState([]);
+  const [videodata, setvideodata] = useState([]);
+  const [error, setError] = useState(null);
+  const [loader, setloader] = useState(false);
+  const [counter, setcounter] = useState(1);
+  const [pageno, setpageno] = useState(1);
+  const [query, setquery] = useState("trending");
+  const [activetab, setactivetab] = useState("Home");
+  const [enlargedImage, setEnlargedImage] = useState(null);
 
-    const {isloggedin} = useContext(UserContext)
-    const {nextPageUrl} = useContext(UserContext)
-    const {setnextPageUrl} = useContext(UserContext)
-    const {inputvalue} = useContext(UserContext)
-    const {Pagetype} = useContext(UserContext)
-    const [imagedata,setimagedata] = useState('')
-    const [videodata,setvideodata] = useState('')
-    const [error,setError] = useState(null)
-    const [loader,setloader] = useState(false)
-    const [isOpen, setIsOpen] = useState(false)
-    const [imageoverlay,setimageoverlay] = useState()
-    var [counter,setcounter] = useState(0)
-    const [pageno,setpageno] = useState("1")
-    const[query,setquery] = useState('trending')
-    const[activetab,setactivetab] = useState('Home')
+  const decodedImageUrl = encodedImage ? decodeURIComponent(encodedImage) : nextPageUrl;
 
+  console.log("Encoded:", encodedImage);
+  console.log("Decoded:", decodedImageUrl);
+  console.log("Description:", description);
 
+  useEffect(() => setquery(inputvalue), [inputvalue]);
 
-
-
-    useEffect(() => {
-        setquery(inputvalue);
-      }, [inputvalue]);
-
-    
-      
-
-    // Image Loader
-   useEffect(() =>{
-    setloader(true)
-    fetch(`https://api.pexels.com/v1/search/?page=${pageno}&query=${query}&per_page=10`,{
-        headers:{
-            Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
-        }
+  useEffect(() => {
+    setloader(true);
+    fetch(`https://api.pexels.com/v1/search/?page=${pageno}&query=${query}&per_page=10`, {
+      headers: { Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc" }
     })
-    .then((res)=>{return res.json()})
-    .then((data)=>{setimagedata(data) , setError(null),setloader(false)})
-    .catch((err)=>{
-        console.error("fetch error:",err)
-        setError("connect to internet ")
-        setloader(false)
-        
-    })
-   },[query,counter])
+      .then(res => res.json())
+      .then(data => {
+        setimagedata(data.photos || []);
+        setvideodata(data.videos || []);
+        setError(null);
+        setloader(false);
+      })
+      .catch(err => {
+        console.error("fetch error:", err);
+        setError("Failed to load content");
+        setloader(false);
+      });
+  }, [query, counter]);
 
-console.log(nextPageUrl)
-   
-   const downloadImage = async () => {
-    const response = await fetch(nextPageUrl);
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
+  const downloadImage = async () => {
+    const urlToDownload = decodedImageUrl;
     
-    a.href = url;
-    a.download = "pexels-image.jpg";
-
-    a.click();
-
-    window.URL.revokeObjectURL(url);
-};
-
-
-
-
-   var next = () =>{
-        
-    counter+=1
-    setcounter(counter)
-    setpageno(counter)
-}
- 
-    var prev = () =>{
-        if (counter===0) counter+=1
-         counter-=1
-         setcounter(counter)
-         setpageno(counter)
-   }
-   
-   const imagesize = (index) =>{
-    setnextPageUrl(imagedata.photos?.[index]?.src?.original)
-   }
-
-
-   const rendering = (nextPageUrl) => {
-
-    if(Pagetype=="photos"){
-      return(
-        <>
-        <img
-         className="rounded-4xl   object-contain  top-0 bottom-0   " src={nextPageUrl} alt="" />
-        </>
-      )
-    }else {
-      return(
-        <>
-        <video
-        autoPlay muted loop
-         className="rounded-4xl   object-contain  top-0 bottom-0   " src={nextPageUrl} alt="" />
-        </>
-      )
-    
+    try {
+      const response = await fetch(urlToDownload);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "pexels-image.jpg";
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download failed:", err);
+      setError("Failed to download image");
     }
+  };
 
+  const next = () => {
+    setcounter(prev => prev + 1);
+    setpageno(counter + 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-
+  const prev = () => {
+    if (counter > 1) {
+      setcounter(prev => prev - 1);
+      setpageno(counter - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    
-   
-  
-    return(
-      <>
-       <ReactLenis root />
-                          
-      <div
-    //   style={{
-    //     backgroundImage: `url(${bg_1})`,
-    //     backgroundSize: 'cover',
-    //     backgroundPosition: 'center'
-    //   }}
-      className={` w-full  bg-black  md:pb-20 p-  text-white  transition-all transform-easeIn relative ${isloggedin ? "visible" : "hidden"}`}>
-     
-                              
+  };
+
+  const imagesize = (index) => {
+    setnextPageUrl(imagedata[index]?.src?.original);
+    setEnlargedImage(imagedata[index]?.src?.original);
+  };
+
+  const rendering = (url) => {
+    return Pagetype === "photo" ? (
+      <img className="w-full h-full object-cover rounded-2xl" src={url} alt="Preview" />
+    ) : (
+      <video className="w-full h-full object-cover rounded-2xl" autoPlay muted loop src={url} />
+    );
+  };
+
+  return (
+    <>
+      <ReactLenis root />
+      <div className={`min-h-screen relative overflow-hidden text-white transition-all ${isloggedin ? "hidden" : "block"}`}>
         
-        <div className="w-full   text-white text-2xl">
+        {/* Animated Galaxy Background */}
+        <div className="fixed inset-0 bg-[#0a0118] -z-10">
+          {/* Stars layer */}
+          <div className="absolute inset-0 opacity-60">
+            <div className="absolute top-[10%] left-[20%] w-1 h-1 bg-white rounded-full animate-pulse"></div>
+            <div className="absolute top-[25%] left-[60%] w-1 h-1 bg-blue-200 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+            <div className="absolute top-[45%] left-[15%] w-0.5 h-0.5 bg-purple-200 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+            <div className="absolute top-[60%] left-[70%] w-1 h-1 bg-white rounded-full animate-pulse" style={{animationDelay: '1.5s'}}></div>
+            <div className="absolute top-[80%] left-[40%] w-0.5 h-0.5 bg-blue-200 rounded-full animate-pulse" style={{animationDelay: '2s'}}></div>
+            <div className="absolute top-[15%] left-[85%] w-1 h-1 bg-purple-300 rounded-full animate-pulse" style={{animationDelay: '0.3s'}}></div>
+            <div className="absolute top-[35%] left-[45%] w-0.5 h-0.5 bg-white rounded-full animate-pulse" style={{animationDelay: '1.2s'}}></div>
+            <div className="absolute top-[70%] left-[80%] w-1 h-1 bg-blue-200 rounded-full animate-pulse" style={{animationDelay: '0.8s'}}></div>
+          </div>
+          
+          {/* Nebula clouds */}
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[120px] animate-pulse"></div>
+          <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-0 left-1/2 w-[700px] h-[700px] bg-indigo-600/15 rounded-full blur-[130px] animate-pulse" style={{animationDelay: '2s'}}></div>
+          
+          {/* Galaxy spiral gradient */}
+          <div className="absolute inset-0 bg-gradient-radial from-purple-900/30 via-transparent to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/40 via-purple-950/30 to-blue-950/40"></div>
+        </div>
 
-            <div className=" p-4 w-full flex flex-col items-center justify-center">
-   
-              {/* <div className="w-full mb-2 flex justify-center items-center">
-                    <div className=" flex  justify-center items-center rounded-2xl overflow-hidden border-2 border-gray-200 ">
-                          <div className="w-ful mb-2 pl-6 pr-6 flex flex-col mt-2">
-                            <div className="flex  flex-row justify-between  items-center">
-                              
-                                    <div className=" flex items-center justify-center gap-8 ">
-                                      <div className="flex flex-row items-center text-[16px]">
-                                            <button className="w-8 mr-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                                            <path fill="#000000" d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8l0-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5l0 3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20-.1-.1s0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5l0 3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2l0-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"/></svg>
-                                            </button> <p> 16k </p>
-                                      </div>
-                                      <div >
-                                              <button className="w-8">
-                                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                                              <path fill="#000000" d="M123.6 391.3c12.9-9.4 29.6-11.8 44.6-6.4c26.5 9.6 56.2 15.1 87.8 15.1c124.7 0 208-80.5 208-160s-83.3-160-208-160S48 160.5 48 240c0 32 12.4 62.8 35.7 89.2c8.6 9.7 12.8 22.5 11.8 35.5c-1.4 18.1-5.7 34.7-11.3 49.4c17-7.9 31.1-16.7 39.4-22.7zM21.2 431.9c1.8-2.7 3.5-5.4 5.1-8.1c10-16.6 19.5-38.4 21.4-62.9C17.7 326.8 0 285.1 0 240C0 125.1 114.6 32 256 32s256 93.1 256 208s-114.6 208-256 208c-37.1 0-72.3-6.4-104.1-17.9c-11.9 8.7-31.3 20.6-54.3 30.6c-15.1 6.6-32.3 12.6-50.1 16.1c-.8 .2-1.6 .3-2.4 .5c-4.4 .8-8.7 1.5-13.2 1.9c-.2 0-.5 .1-.7 .1c-5.1 .5-10.2 .8-15.3 .8c-6.5 0-12.3-3.9-14.8-9.9c-2.5-6-1.1-12.8 3.4-17.4c4.1-4.2 7.8-8.7 11.3-13.5c1.7-2.3 3.3-4.6 4.8-6.9l.3-.5z"/></svg>
-                                              </button>
-                                      </div>
-                                      <div>
-                                        
-                                            <button className="w-7">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-                                            <path fill="#000000" d="M352 224c53 0 96-43 96-96s-43-96-96-96s-96 43-96 96c0 4 .2 8 .7 11.9l-94.1 47C145.4 170.2 121.9 160 96 160c-53 0-96 43-96 96s43 96 96 96c25.9 0 49.4-10.2 66.6-26.9l94.1 47c-.5 3.9-.7 7.8-.7 11.9c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-25.9 0-49.4 10.2-66.6 26.9l-94.1-47c.5-3.9 .7-7.8 .7-11.9s-.2-8-.7-11.9l94.1-47C302.6 213.8 326.1 224 352 224z"/></svg>
-                                            </button>
-                                      </div>
-                                   
-                                   
-                                    </div>
-                                    <div className=" flex justify-evenly relative mb-2 ">
-                                    <button className="p-4 text-[18px] rounded-3xl bg-[#e60023] text-white">
-                                      Save
-                                    </button> 
-                                          <motion.div
-                                          animate={{scale:[1,0.7,1],
-                                               opacity:[0.4,1]
-                                              }}
-                                              transition={{
-                                                duration:2,
-                                                repeat:Infinity}}
-
-                                          className="border-5 w-30 h-30 -top-7 absolute rounded-full border-blue-800">
-                                                  
-                                          </motion.div>
-                                    </div>
-
-                            </div>
-                             
-                              
-                            <div className="w-full flex items-center justify-center">
-                                <div className="flex justify-center items-center w-full ">
-                                      <div 
-                                      className=" pl-10 pr-10 overflow-hidden object-contain w-60  aspect-[0.5 / 1] rounded-b-4xl items-center justify-center contents">
-                                          
-                                                  <div className="md:w-[20%] w-[100%]">
-
-                                                  {rendering(nextPageUrl)}
-                                                    
-
-                                                  </div>                                                
-                                                  
-                                      </div>     
-                                </div>
-                                      
-                          </div>
-                                  
-
-                                        <div className="w-full mt-2 mb-2 ">
-                                          <div className=" flex flex-row items-center">
-                                            <div>
-                                              <img className=" w-8 h-8 rounded-full" src={bg_1}></img>
-                                            </div>
-                                            <div className=" ml-2">
-                                                <p className=" text-[16px]">Senorita</p>
-                                            </div>
-                                          </div>
-                                        </div>
-                          </div>
-                          
-                      </div>
-              </div> */}
- 
-                <div className="grid  grid-cols-4 gap-4">
+        <div className="relative z-10 max-w-[1600px] mx-auto px-3 py-6 md:px-8 md:py-12">
+          
+          {/* Hero Section with Main Preview */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mb-8 md:mb-12"
+          >
+            <div className="relative bg-white/5 backdrop-blur-xl rounded-2xl md:rounded-3xl p-1 shadow-2xl border border-white/10">
+              <div className="bg-black/40 rounded-2xl md:rounded-3xl p-4 md:p-10">
+                
+                {/* Header Section */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 md:gap-4 mb-6 md:mb-8">
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-xl sm:text-2xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent truncate">
+                      {description ? decodeURIComponent(description) : "Featured Content"}
+                    </h1>
+                    <p className="text-slate-400 mt-1 md:mt-2 text-xs md:text-base">High quality visuals from Pexels</p>
+                  </div>
                   
-                <div className="w-full mb-2 col-span-4 md:col-span-2   flex justify-center items-center">
-                    <div className=" flex  justify-center items-center  rounded-2xl overflow-hidden border-2 border-gray-200 ">
-                          <div className="w-full mb-2 pl-6 pr-6  flex flex-col mt-2">
-                            <div className="flex  flex-row justify-between  items-center">
-                              
-                          
-                                    <div className="  flex justify-evenly relative mb-2 ">
-                                    {/* <button
-                                    
-                                     className="md:p-4 p-2 text-[8px] md:text-[18px] rounded-3xl bg-[#e60023] text-white">
-                                      Save
-                                    </button> 
-                                          <motion.div
-                                          animate={{scale:[1,0.7,1],
-                                               opacity:[0.4,1]
-                                              }}
-                                              transition={{
-                                                duration:2,
-                                                repeat:Infinity}}
-
-                                          className="border-5 w-15 h-15 md:w-30 md:h-30  -top-4 md:-top-7 absolute rounded-full border-blue-800">
-                                                  
-                                          </motion.div> */}
-                                            <motion.button
-                                            onClick={downloadImage}
-                                             whileTap={{scale:0.8}}
-                                             className="bg-slate-800 no-underline group cursor-pointer relative shadow-2xl shadow-zinc-900 rounded-full p-px text-[15px] font-semibold leading-6  text-white inline-block">
-                                              <span className="absolute inset-0 overflow-hidden rounded-full">
-                                                <span className="absolute inset-0 rounded-full bg-[image:radial-gradient(75%_100%_at_50%_0%,rgba(56,189,248,0.6)_0%,rgba(56,189,248,0)_75%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100"></span>
-                                              </span>
-                                              <div className="relative flex space-x-2 items-center z-10 rounded-full bg-zinc-950 py-0.5 px-4 ring-1 ring-white/10 ">
-                                                <span>{`Download Here`}</span>
-                                                <svg
-                                                  width="16"
-                                                  height="16"
-                                                  viewBox="0 0 24 24"
-                                                  fill="none"
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                >
-                                                  <path
-                                                    stroke="currentColor"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth="1.5"
-                                                    d="M10.75 8.75L14.25 12L10.75 15.25"
-                                                  ></path>
-                                                </svg>
-                                              </div>
-                                              <span className="absolute -bottom-0 left-[1.125rem] h-px w-[calc(100%-2.25rem)] bg-gradient-to-r from-emerald-400/0 via-emerald-400/90 to-emerald-400/0 transition-opacity duration-500 group-hover:opacity-40"></span>
-                                            </motion.button>
-                                    </div>
-
-                            </div>
-                             
-                              
-                            <div className="w-full flex items-center justify-center">
-                                <div className="flex justify-center items-center w-full ">
-                                      <div 
-                                      className=" pl-10 pr-10 overflow-hidden object-contain   aspect-[0.5 / 1] rounded-b-4xl items-center justify-center contents">
-                                          
-                                                  <div className="md:w-[50%] w-[60%]">
-
-                                                  {rendering(nextPageUrl)}
-                                                    
-
-                                                  </div>                                                
-                                                  
-                                      </div>     
-                                </div>
-                                      
-                          </div>
-                                  
-
-                                        <div className="w-full mt-2 mb-2 ">
-                                          <div className=" flex flex-row items-center">
-                                            <div>
-                                              <img className=" w-8 h-8 rounded-full" src={bg_1}></img>
-                                            </div>
-                                            <div className=" ml-2">
-                                                <p className=" text-[16px]">Senorita</p>
-                                            </div>
-                                          </div>
-                                        </div>
-                          </div>
-                          
-                      </div>
-              </div>
-                  
-                      {
-                  activetab === "Home" ? (
-                    <>
-                    {imagedata.photos?.map((photo, index) => (
-                        
-                      <button onClick={() => imagesize(index)} className="cursor-pointer" key={index}>
-                        <motion.img
-                        className="w-full  rounded-4xl "
-                          whileTap={{ scale: 0.5 }}
-                          src={photo.src?.portrait}
-                          alt=""
-                        />
-                      </button>
-                    ))}
-                         
-              {videodata.videos?.map((video,index) => (
-                <button onClick={() => imagesize(index)}
-                className="cursor-pointer">
-              <motion.video 
-              className="w-full rounded-4xl "
-                autoPlay muted loop
-                whileTap={{scale:0.5}}
-                key={index}
-                src={video?.video_files?.[2].link} 
-                alt="" />  
-                </button>
-            ))}
-            </>
-            ) : activetab=== "Photos" ? (
-                    imagedata.photos?.map((photo, index) => (
-                      <button onClick={() => imagesize(index)} className="cursor-pointer" key={index}>
-                        <motion.img
-                          className="pt-4 rounded-4xl"
-                          whileTap={{ scale: 0.5 }}
-                          src={photo.src?.original}
-                          alt=""
-                        />
-                      </button>
-                    ))
-                  ) : activetab === "Videos" ? (
-                    videodata.videos?.map((video,index) => (
-                      <button onClick={() => imagesize(index)}
-                      className="cursor-pointer">
-                    <motion.video 
-                      autoPlay muted loop
-                      className=" pt-4 rounded-4xl "
-                      whileTap={{scale:0.5}}
-                      key={index}
-                      src={video?.video_files?.[2].link} 
-                      alt="" />  
-                      </button>
-                  ))
-                  ):null
-                }
+                  {/* Compact Download Button */}
+                  <motion.button
+                    onClick={downloadImage}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="group relative px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full font-medium text-xs md:text-sm shadow-lg hover:bg-white/15 transition-all whitespace-nowrap"
+                  >
+                    <span className="relative flex items-center gap-2">
+                      <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download
+                    </span>
+                  </motion.button>
                 </div>
-               <div className="font-bold font-sans  w-full flex items-center"> 
-               {error}
-               
-               </div> 
-             
-            </div>
-           
-        </div>
-        {loader && (
-              <motion.div className=" w-full p-20 flex items-center justify-center"
-              >
-                <p className="text-2xl">Loading Content....</p>
-                <motion.div 
-                  animate={{ rotate:360}}
-                  transition={{repeat:Infinity}}
-                className=" ml-2 border-b-2 border-blue-500 p-4 rounded-full"></motion.div>
-              </motion.div>
-            
-            )}
-        
-        <div className="w-full text-white font-bold flex items-center justify-center p-5">
-        
-      <motion.button 
-       whileTap={{scale:0.8}}
-      className="p-2 w-10 bg-red-800 mr-30 text-xl rounded-2xl"
-      onClick={prev}
-      ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
-        <path fill="#ffffff" d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"/></svg></motion.button>
-      <motion.button 
-        whileTap={{scale:0.8}}
-        className="p-2 text-2xl w-10  bg-purple-800 rounded-2xl"
-      onClick={next}
-      ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
-        <path fill="#ffffff" d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/></svg></motion.button>
-        </div>
 
+                {/* Main Image Display */}
+                <div 
+                  className="relative aspect-[4/3] md:aspect-[16/10] lg:aspect-[21/9] w-full bg-black/50 rounded-xl md:rounded-2xl overflow-hidden shadow-2xl border border-white/10 cursor-pointer"
+                  onClick={() => decodedImageUrl && setEnlargedImage(decodedImageUrl)}
+                >{console.log(decodedImageUrl)}
+                  {decodedImageUrl ? (
+                    rendering(decodedImageUrl)
+                    
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <p className="text-slate-400">No image available</p>
+                    </div>
+                  )}
+                  
+                  {/* Gradient Overlay */}
+                  {decodedImageUrl && (
+                    <>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
+                      
+                      {/* Click to enlarge hint */}
+                      <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md rounded-full px-3 py-1 border border-white/20">
+                        <p className="text-xs text-white flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                          </svg>
+                          Enlarge
+                        </p>
+                      </div>
+                      
+                      {/* Author Info Overlay */}
+                      <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 flex items-center gap-2 md:gap-3 bg-black/60 backdrop-blur-md rounded-full px-3 py-1.5 md:px-4 md:py-2 border border-white/20">
+                        <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center font-bold text-xs md:text-sm">
+                          S
+                        </div>
+                        <div>
+                          <p className="font-semibold text-xs md:text-sm">Senorita</p>
+                          <p className="text-[10px] md:text-xs text-slate-400">Photographer</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Gallery Section */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+              <h2 className="text-lg md:text-2xl font-bold text-white">Explore Gallery</h2>
+              
+              {/* Compact Pagination */}
+              <div className="flex items-center gap-1.5 md:gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-2 md:px-3 py-1 md:py-1.5 shadow-lg">
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={prev}
+                  disabled={counter === 1}
+                  className={`w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center transition-all ${
+                    counter === 1 
+                      ? 'text-white/30 cursor-not-allowed' 
+                      : 'text-white hover:bg-white/10'
+                  }`}
+                >
+                  <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </motion.button>
+
+                <div className="px-2 md:px-3 text-xs md:text-sm font-medium text-white/90">
+                  {pageno}
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={next}
+                  className="w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-all"
+                >
+                  <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </motion.button>
+              </div>
+            </div>
+
+            {/* Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
+              {imagedata.map((photo, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: idx * 0.05 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => imagesize(idx)}
+                  className="group relative aspect-[3/4] cursor-pointer rounded-xl md:rounded-2xl overflow-hidden bg-black/40 border border-white/10 shadow-lg"
+                >
+                  <img
+                    src={photo.src?.portrait}
+                    alt=""
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  />
+                  
+                  {/* Hover Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute bottom-2 left-2 right-2 md:bottom-4 md:left-4 md:right-4">
+                      <p className="text-xs md:text-sm font-medium text-white truncate">{photo.photographer}</p>
+                      <p className="text-[10px] md:text-xs text-slate-300">Click to preview</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="bg-red-500/10 border border-red-500/20 backdrop-blur-sm rounded-2xl p-4 mb-8"
+            >
+              <p className="text-red-400 text-center font-medium text-sm">{error}</p>
+            </motion.div>
+          )}
+
+          {/* Loader */}
+          {loader && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex justify-center items-center gap-4 py-12"
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                className="w-6 h-6 md:w-8 md:h-8 border-4 border-purple-500/30 border-t-purple-400 rounded-full"
+              ></motion.div>
+              <p className="text-xs md:text-sm font-medium text-slate-300">Loading content...</p>
+            </motion.div>
+          )}
         </div>
-        
-      
-    
-      
-      </>
-      
-    )
+      </div>
+
+      {/* Enlarged Image Modal */}
+      <AnimatePresence>
+        {enlargedImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"
+            onClick={() => setEnlargedImage(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", damping: 25 }}
+              className="relative max-w-7xl w-full max-h-[90vh] flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setEnlargedImage(null)}
+                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              {/* Image */}
+              <img
+                src={enlargedImage}
+                alt="Enlarged view"
+                className="max-w-xl max-h-2xl object-contain rounded-2xl shadow-2xl border border-white/20"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
 }

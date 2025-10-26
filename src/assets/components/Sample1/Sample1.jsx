@@ -1,259 +1,222 @@
-import { motion } from "motion/react"
-import React, { useContext, useEffect, useRef, useState } from "react"
-import UserContext from "../context/UserContext"
-import bg_1 from "./bg-main.webp"
+import React, { useContext, useEffect, useState, useCallback } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
-import { ReactLenis, useLenis } from 'lenis/react'
-import {Image} from "@heroui/react";
-
-"use client";;
+import { ReactLenis } from "lenis/react";
+import { Image } from "@heroui/react";
+import UserContext from "../context/UserContext";
+import ImageRender from "../ImageRender/ImageRender";
+import Masonry from "../ImageRender/Masonry";
 import { BackgroundGradient } from "../ui/background-gradient";
 
+function usePexelsSearch(query, page = 1) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(3);
 
+  const fetchImages = useCallback(() => {
+    if (!query) return;
+    setLoading(true);
+    setError(null);
 
+    fetch(`https://api.pexels.com/v1/search?page=${page}&query=${query}&per_page=30`, {
+      headers: {
+        Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc",
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setData(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Fetch error:", err);
+        setError("Network error. Retrying...");
+        setLoading(false);
 
+        if (retryCount > 0) {
+          setTimeout(() => setRetryCount((r) => r - 1), 1500);
+        } else {
+          setError("Failed to load. Please refresh.");
+        }
+      });
+  }, [query, page, retryCount]);
 
+  useEffect(() => {
+    fetchImages();
+  }, [fetchImages]);
 
+  return { data, loading, error, retryCount };
+}
 
 export default function Sample1() {
+  const { isloggedin, inputvalue } = useContext(UserContext);
+  const [query, setQuery] = useState("trending");
+  const [page, setPage] = useState(1);
+  const navigate = useNavigate();
 
-    const {isloggedin} = useContext(UserContext)
-    const {setnextPageUrl} = useContext(UserContext)
-    const {setPagetype} = useContext(UserContext)
-    const {inputvalue} = useContext(UserContext)
-    const [imagedata,setimagedata] = useState('')
-    const [videodata,setvideodata] = useState('')
-    const [error,setError] = useState(null)
-    const [loader,setloader] = useState(false)
-    const [isOpen, setIsOpen] = useState(false)
-    const [imageoverlay,setimageoverlay] = useState()
-    var [counter,setcounter] = useState(0)
-    const [pageno,setpageno] = useState("1")
-    const[query,setquery] = useState('trending')
-    const[activetab,setactivetab] = useState('Home')
-    const Navigate = useNavigate()
-    let [retry,setretry] = useState(10)
-
-  
-
-    useEffect(() => {
-        setquery(inputvalue);
-      }, [inputvalue]);
-
-      
-
-    // Image Loader
-   useEffect(() => {
-    setloader(true)
-    fetch(`https://api.pexels.com/v1/search/?page=${pageno}&query=${query}&per_page=40`,{
-        headers:{
-            Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
-        }
-    })
-    .then((res)=>{return res.json()})
-    .then((data)=>{setimagedata(data) , setError(null),setloader(false)})
-    .catch((err)=>{
-        console.error("fetch error:",err)
-        setError("connect to internet ")
-        setloader(false)
-        setTimeout(() => {
-          apiCrash()
-        }, 2000);
-        
-        
-    })
-   },[query,counter,retry,setretry])
-   console.log(imagedata)
-
-  // //  Video Loader
-  //  useEffect(() =>{
-  //   setloader(true)
-  //   fetch(`https://api.pexels.com/videos/search?page=${pageno}&query=${query}&per_page=20`,{
-  //       headers:{
-  //           Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
-  //       }
-  //   })
-  //   .then((res)=>{return res.json()})
-  //   .then((data)=>{setvideodata(data) , setError(null),setloader(false)})
-  //   .catch((err)=>{
-  //       console.error("fetch error:",err)
-  //       setError("connect to internet ")
-  //       setloader(false)
-        
-  //   })
-  //  },[query,counter,retry,setretry])
-
-
-
-   const apiCrash = () =>{
-
-      if(retry>0){
-          setretry(retry=retry-1);
-        console.log("retrying")
-        console.log(retry)
-      }else{
-        console.log("Please Refresh")
-      }
-      
-  
-      
-   }
-
-
-   var next = () =>{
-        
-    counter+=1
-    setcounter(counter)
-    setpageno(counter)
-}
- 
-    var prev = () =>{
-        if (counter===0) counter+=1
-         counter-=1
-         setcounter(counter)
-         setpageno(counter)
-   }
-   
-   const imagesize = (index) =>{
-     setIsOpen(false)
-     setPagetype("photos")
-     setnextPageUrl(imagedata.photos?.[index]?.src?.original)
-     Navigate("/Home/image")
-   }
-
-  
-
-
-    const renderPhotos = (photos, useOriginal = false) => 
-    photos?.map((photo, index) => (
-      <div className="w-full flex align-center justify-center pt-4">
-      <button onClick={() => imagesize(index)} className="cursor-pointer" key={`photo-${index}`}>
-        <motion.img
-          className={`${useOriginal ? "pt-4" : "w-full"} rounded-4xl `}
-          whileTap={{ scale: 0.5 }}
-          src={useOriginal ? photo.src?.original : photo.src?.portrait}
-          alt=""
-        />
-      </button>
-      </div>
-    ));
-    
-  
-    const videoRef = useRef(null)
-
-
-    const handleHoverEnter= () => {
-        videoRef.current.play()
+  useEffect(() => {
+    if (inputvalue) {
+      setQuery(inputvalue);
+      setPage(1); // Reset to page 1 on new search
     }
+  }, [inputvalue]);
 
-    const handleHoverLeave= () => {
-      
-      videoRef.current.pause()
-  }
+  const { data, loading, error } = usePexelsSearch(query, page);
 
-  // const renderVideos = (videos) =>
-  //   videos?.map((video, index) => (
-  //     <div className="w-full flex align-center justify-center mt-5 ">
-  //     <button onClick={() => videosize(index)} className="cursor-pointer" key={`video-${index}`}>
-  //     <BackgroundGradient className="rounded-4xl  ">
-  //       <motion.video
-  //          ref={videoRef}
-  //          muted 
-  //          onMouseEnter={handleHoverEnter}
-  //         //  onMouseLeave={handleHoverLeave}
-  //         className="w-full  rounded-4xl "
-  //         whileTap={{ scale: 0.5 }}
-  //         src={video?.video_files?.[2].link}
-  //       />
-  //        </BackgroundGradient>
-  //     </button>
-  //     </div>
-  //   ));
-    
-    
-    
+  const handlePrevPage = () => {
+    if (page > 1) {
+      setPage((prev) => prev - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
-   
-    return(
-      <>
+  const handleNextPage = () => {
+    setPage((prev) => prev + 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
+    <>
       <ReactLenis root />
-      
-      <div
-      
-      className={` w-full md:pt-10 md:pb-20 p-5  text-black transition-all transform-easeIn bg-black relative ${isloggedin ? "visible" : "hidden"}`}>
-        
-  
-          <div className="w-full text-black text-2xl">
-          <div className="w-full flex flex-col items-center ">
-          <div className="w-full flex flex-row p-4 items-center justify-center">
-            <button onClick={()=>setactivetab("Home")}  className={`p-3 md:p-3 mr-3 rounded-full  text-black md:text-[18px] text-[9px] border-2 border-black cursor-pointer hover:text-black ${activetab ==="Home" ? "bg-transparent text-black" :"bg-black text-white"}`}> Home</button>
-            <button onClick={()=>setactivetab("Photos")}  className={`p-3 md:p-3 mr-3 rounded-full  text-black md:text-[18px] text-[9px]  border-2 border-black cursor-pointer hover:text-black ${activetab ==="Photos" ? "bg-transparent text-black" :"bg-black text-white"}`}> Photos</button>
-            <button onClick={()=>setactivetab("Videos")}  className={`p-3 md:p-3 md:mr-3 rounded-full  text-black md:text-[18px] text-[9px]  border-2 border-black cursor-pointer hover:text-black ${activetab ==="Videos" ? "bg-transparent text-black" :"bg-black text-white"}`}> Videos</button>
-          </div> 
-          <p className="pl-3 w-full font-serif">Free Stock {activetab}</p>
-
-
-            
+      <section
+        className={`relative w-full min-h-screen overflow-hidden text-white transition-all duration-500 ${
+          isloggedin ? "hidden" : "visible"
+        }`}
+      >
+        {/* Animated Galaxy Background */}
+        <div className="fixed inset-0 bg-[#0a0118] -z-10">
+          {/* Stars layer */}
+          <div className="absolute inset-0 opacity-60">
+            <div className="absolute top-[10%] left-[20%] w-1 h-1 bg-white rounded-full animate-pulse"></div>
+            <div className="absolute top-[25%] left-[60%] w-1 h-1 bg-blue-200 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+            <div className="absolute top-[45%] left-[15%] w-0.5 h-0.5 bg-purple-200 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+            <div className="absolute top-[60%] left-[70%] w-1 h-1 bg-white rounded-full animate-pulse" style={{animationDelay: '1.5s'}}></div>
+            <div className="absolute top-[80%] left-[40%] w-0.5 h-0.5 bg-blue-200 rounded-full animate-pulse" style={{animationDelay: '2s'}}></div>
+            <div className="absolute top-[15%] left-[85%] w-1 h-1 bg-purple-300 rounded-full animate-pulse" style={{animationDelay: '0.3s'}}></div>
+            <div className="absolute top-[35%] left-[45%] w-0.5 h-0.5 bg-white rounded-full animate-pulse" style={{animationDelay: '1.2s'}}></div>
+            <div className="absolute top-[70%] left-[80%] w-1 h-1 bg-blue-200 rounded-full animate-pulse" style={{animationDelay: '0.8s'}}></div>
+            <div className="absolute top-[50%] left-[90%] w-1 h-1 bg-purple-300 rounded-full animate-pulse" style={{animationDelay: '1.8s'}}></div>
+            <div className="absolute top-[90%] left-[25%] w-0.5 h-0.5 bg-white rounded-full animate-pulse" style={{animationDelay: '0.7s'}}></div>
           </div>
-            <div className="columns-2 md:columns-4 gap-4 p-4">
-               <div className="font-bold font-sans  w-full flex items-center"> 
-               {error}
-               
-               </div> 
-               <Image
-              alt="HeroUI hero Image"
-              src="https://heroui.com/images/hero-card-complete.jpeg"
-              width={300}
-            />
-  
-               <>
-                 {activetab === "Home" && (
-                  <>
-                  {renderPhotos(imagedata.photos)}
-                  {/* {renderVideos(videodata.videos)} */}
-                </>
-              )}
-
-              {activetab === "Photos" && renderPhotos(imagedata.photos, true)}
-
-              {/* {activetab === "Videos" && renderVideos(videodata.videos)} */}
-              </>
-             </div>
-           
+          
+          {/* Nebula clouds */}
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[120px] animate-pulse"></div>
+          <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-0 left-1/2 w-[700px] h-[700px] bg-indigo-600/15 rounded-full blur-[130px] animate-pulse" style={{animationDelay: '2s'}}></div>
+          
+          {/* Galaxy spiral gradient */}
+          <div className="absolute inset-0 bg-gradient-radial from-purple-900/30 via-transparent to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/40 via-purple-950/30 to-blue-950/40"></div>
         </div>
-        {loader && (
-              <motion.div className=" w-full p-20 flex items-center justify-center"
-              >
-                <p className="text-2xl">Loading Content....</p>
-                <motion.div 
-                  animate={{ rotate:360}}
-                  transition={{repeat:Infinity}}
-                className=" ml-2 border-b-2 border-blue-500 p-4 rounded-full"></motion.div>
-              </motion.div>
-            
+
+        <div className="relative z-10 pt-20 pb-32 px-4 md:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="text-center mb-10"
+          >
+            <h1 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+              Explore Stunning Visuals
+            </h1>
+            <p className="mt-3 text-slate-300 text-lg">
+              {loading
+                ? "Loading images..."
+                : error
+                ? error
+                : `Showing results for "${query}"`}
+            </p>
+          </motion.div>
+
+          {/* Content Area */}
+          <div className="max-w-[1600px] mx-auto">
+            {loading && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-pulse">
+                {[...Array(8)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-white/5 backdrop-blur-sm rounded-2xl h-60 w-full shadow-md border border-white/10"
+                  ></div>
+                ))}
+              </div>
             )}
-        
-        {/* <div className="w-full\ text-white font-bold flex  p-5">
-        
-      <motion.button 
-       whileTap={{scale:0.8}}
-      className="p-2 w-10 bg-red-800 mr-30 text-xl rounded-2xl"
-      onClick={prev}
-      ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
-        <path fill="#ffffff" d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"/></svg></motion.button>
-      <motion.button 
-        whileTap={{scale:0.8}}
-        className="p-2 text-2xl w-10  bg-purple-800 rounded-2xl"
-      onClick={next}
-      ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
-        <path fill="#ffffff" d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/></svg></motion.button>
-        </div> */}
-    
 
-      </div>
+            {!loading && data && data.photos && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8 }}
+              >
+                <ImageRender imageData={data} />
+              </motion.div>
+            )}
 
-      </>
-      
-      
-    )
+            {error && !loading && (
+              <div className="text-center mt-10">
+                <div className="inline-block bg-red-500/10 border border-red-500/20 backdrop-blur-sm rounded-2xl p-6">
+                  <p className="text-red-400 mb-4">{error}</p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 text-white font-medium transition-all duration-300"
+                  >
+                    Refresh
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {!loading && data && data.photos && data.photos.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="flex justify-center items-center gap-3 mt-12"
+              >
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handlePrevPage}
+                  disabled={page === 1}
+                  className={`group relative px-5 py-2.5 rounded-full font-medium text-sm shadow-lg transition-all duration-300 ${
+                    page === 1
+                      ? 'bg-white/5 text-white/30 cursor-not-allowed border border-white/10'
+                      : 'bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/15'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Previous
+                  </span>
+                </motion.button>
+
+                <div className="px-6 py-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full shadow-lg">
+                  <span className="text-sm font-semibold text-white">
+                    Page {page}
+                  </span>
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleNextPage}
+                  className="group relative px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-medium text-sm shadow-lg hover:bg-white/15 transition-all duration-300"
+                >
+                  <span className="flex items-center gap-2">
+                    Next
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                </motion.button>
+              </motion.div>
+            )}
+          </div>
+        </div>
+      </section>
+    </>
+  );
 }

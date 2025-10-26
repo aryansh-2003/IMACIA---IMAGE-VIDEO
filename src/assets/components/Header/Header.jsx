@@ -1,159 +1,171 @@
-import React, { useEffect, useState } from "react";
-import Logo from "./logo of.png"
-import { motion } from "motion/react"
-import { useContext } from "react";
+"use client";
+
+import React, { useContext, useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router";
 import UserContext from "../context/UserContext";
-import { Navigate, useNavigate } from "react-router";
-import { Stars } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
+import Logo from "./logo of.png";
 import { PlaceholdersAndVanishInput } from "../ui/placeholders-and-vanish-input";
-import Galaxy from '../Header/Galaxy';
-    
 
+// 🎇 Lightweight particle background (Canvas)
+const ParticleBackground = () => {
+  useEffect(() => {
+    const canvas = document.getElementById("particle-canvas");
+    const ctx = canvas.getContext("2d");
+    let particles = [];
+    let w, h;
+    const num = 80;
 
+    const resize = () => {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+      particles = Array.from({ length: num }).map(() => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 2 + 0.5,
+        dx: (Math.random() - 0.5) * 0.5,
+        dy: (Math.random() - 0.5) * 0.5,
+      }));
+    };
 
-export default function Header(){
+    const draw = () => {
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "rgba(255,255,255,0.3)";
+      particles.forEach((p) => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+        p.x += p.dx;
+        p.y += p.dy;
+        if (p.x < 0 || p.x > w) p.dx *= -1;
+        if (p.y < 0 || p.y > h) p.dy *= -1;
+      });
+      requestAnimationFrame(draw);
+    };
 
+    resize();
+    draw();
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, []);
 
-    const [image,setimage] = useState()
-    const [imagedata,setimagedata] = useState()
-    const {isloggedin,setisloggedin} = useContext(UserContext)
-    const [username,setusername] = useState("")
-    const [getinput,setgetinput] = useState()
-    const {userdata} = useContext(UserContext)
-    const [query, setquery] = useState("dog")
-    const {setinputvalue} = useContext(UserContext)
-    const Navigate = useNavigate()
+  return (
+    <canvas
+      id="particle-canvas"
+      className="absolute inset-0 w-full h-full"
+      style={{ zIndex: 0 }}
+    />
+  );
+};
 
-    const placeholders = [
-        "Animals",
-        "Boy playing football ",
-        "Supercars",
-        "Sea Shores",
-        "cricket",
-      ]
+export default function Header() {
+  const navigate = useNavigate();
+  const { userdata, isloggedin, setisloggedin, setinputvalue } =
+    useContext(UserContext);
+  const [username, setUsername] = useState("");
+  const [query, setQuery] = useState("");
 
+  const placeholders = [
+    "Neon Cities",
+    "Ocean Shores",
+    "Cyberpunk Dreams",
+    "Nature",
+    "Luxury Cars",
+    "Space Art",
+  ];
 
+  useEffect(() => {
+    if (userdata?.user?.displayName) {
+      setUsername(userdata.user.displayName);
+      setisloggedin(true);
+    } else {
+      setisloggedin(false);
+    }
+  }, [userdata, setisloggedin]);
 
-    useEffect(() =>{
-        fetch(`https://api.pexels.com/v1/search/?page=1&query=nature&per_page=40`,{
-            headers:{
-                Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
-            }
-        })
-        .then((res)=>{return res.json()})
-        .then((data)=>{
-            setimage(data.photos?.[Math.floor(Math.random()*(40-1)+1)]?.src.original)
-            setimagedata(data)
-        })
-        .catch((err)=>{
-            console.error("fetch error:",err)
-            
-        })
-       },[])
+  const handleSubmit = () => {
+    if (!query.trim()) return;
+    setinputvalue(query);
+  };
 
-    
+  return (
+    <header className="relative flex flex-col items-center justify-center w-full min-h-screen overflow-hidden text-white">
+      {/* ⚡ Gradient Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]
+ animate-gradient-x" />
 
-    useEffect(()=>{
-        if (userdata) {
-            let user = userdata.user.displayName
-            setusername(user)
-            setisloggedin(true)
-        }else{
-            setisloggedin(false)
-        }
-    },[userdata])
+      {/* ✨ Particles */}
+      <ParticleBackground />
 
+      {/* 🕶️ Vignette Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/60 pointer-events-none" />
 
-
-    const handleChange = (e) => {
-        setgetinput(e.target.value)
-      };
-
-      const onSubmit = (value) => {
-     setinputvalue(getinput)
-      console.log(getinput)
-       
-      };
- 
-
-   const querysetter = () =>{
-        console.log(query)
-   }
-     
-
-    return(
-        <header className="shadow bg-center md:min-h-125   relative bg-black top-0  flex flex-col w-full items-center backdrop-blur-3xl"
-        >
-            
-            <div classname="absolute -z-100"style={{ width: '100%', height: '100%', position: 'absolute', zIndex:"0"  }}>
-          <Galaxy />
+      {/* 🔐 Login Overlay */}
+      {isloggedin && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-20 backdrop-blur-xl bg-black/40">
+          <div className="p-10 rounded-3xl bg-white/10 border border-white/20 shadow-2xl text-center">
+            <p className="text-2xl font-semibold mb-4">Please log in first</p>
+            <button
+              onClick={() => navigate("/")}
+              className="px-6 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-pink-500 text-white font-semibold hover:opacity-90 transition"
+            >
+              Go to Login
+            </button>
           </div>
-         
+        </div>
+      )}
 
-            <div className={`w-full backdrop-blur-2xl h-screen absolute z-200 items-center justify-center  ${isloggedin ? "hidden" : "flex"} `}>
-                <div className=" p-20 bg-[#0f171e] flex flex-col justify-center items-center rounded-2xl">
-                    <p className="text-3xl text-white">Please Log in First</p>
-                    <button
-                    onClick={()=>Navigate('/')}
-                     className="text-[#00a8e1] text-2xl cursor-pointer mt-4">Log in</button>
-                </div>
-            </div>
+      {/* 🌐 Navigation */}
+      <nav className="absolute top-0 w-full flex justify-between items-center px-10 py-6 z-10">
+        <img src={Logo} alt="logo" className="w-20 opacity-90 hover:opacity-100 transition" />
 
-
-            <nav className=" flex w-full flex-row justify-around ">
-
-
-            
-                
-                
-                <div className="">
-                <img className="w-20" src={Logo} alt="" 
+        {!isloggedin && (
+          <div className="flex items-center gap-4">
+            <button className="flex items-center gap-2 text-lg font-medium">
+              <svg className="w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                <path
+                  fill="#f5a700"
+                  d="M399 384.2C376.9 345.8 335.4 320 288 320l-64 0c-47.4 0-88.9 25.8-111 64.2c35.2 39.2 86.2 63.8 143 63.8s107.8-24.7 143-63.8zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm256 16a72 72 0 1 0 0-144 72 72 0 1 0 0 144z"
                 />
-                </div>
+              </svg>
+              <span>{username}</span>
+            </button>
+            <button className="px-4 py-2 bg-white/10 border border-white/20 rounded-2xl hover:bg-white/20 transition">
+              Upload
+            </button>
+          </div>
+        )}
+      </nav>
 
-                <div className="w-full flex justify-end p-2">
-                    <div className="p-1 flex items-center justify-center ">
-                        <button className="flex mr-4 items-center justify-around text-xl text-white">
-                        <svg className="w-8 mr-2 " xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                        <path fill="#f5a700" d="M399 384.2C376.9 345.8 335.4 320 288 320l-64 0c-47.4 0-88.9 25.8-111 64.2c35.2 39.2 86.2 63.8 143 63.8s107.8-24.7 143-63.8zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm256 16a72 72 0 1 0 0-144 72 72 0 1 0 0 144z"/></svg>
-                        <p>{username}</p>
-                        </button>
-                        <button className="pt-2 pb-2 pl-3 pr-3 bg-black text-white rounded-2xl">
-                            Upload
-                        </button>
-                    </div>
-                </div>
+      {/* 🧠 Hero Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1 }}
+        className="z-10 text-center mt-20"
+      >
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.8 }}
+          className="text-6xl md:text-7xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-pink-500 drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]"
+        >
+          IMACIA
+        </motion.h1>
+        <p className="mt-3 text-lg text-gray-300 font-light tracking-wide">
+          Your Dream Wallpapers, Reimagined.
+        </p>
 
-             </nav>
-
-             <div className="md:w-full  min-h-100   flex items-center justify-center" >
-                <div className="font-mono pt-12 md:text-3xl text-white flex flex-col items-center justify-center ">
-                    
-                    <p className=" font-serif text-2xl">The best free stock photos, royalty free images & videos shared by creators.</p>
-                    <div className=" w-full p-2  mt-8 relative  flex flex-row items-center justify-center
-                    ">
-
-
-                    <PlaceholdersAndVanishInput placeholders={placeholders} onChange={handleChange} onSubmit={onSubmit} />
-                        
-                    {/* <input className="w-full bg-white  border-none rounded-2xl p-3  text-gray-800 text-[20px] " placeholder="Search Images & Videos"  type="text"
-                    onChange={(e)=>setquery(e.target.value)}
-                    >
-                    </input>
-                         
-                         <motion.button
-                         type="button"
-                         onClick={querysetter}
-                         whileTap={{scale:0.8}}
-                         className=" w-10 pb-2 mr-2 pr-3 pt-1 absolute right-0"><img src="https://upload.wikimedia.org/wikipedia/meta/thumb/7/7e/Vector_search_icon.svg/945px-Vector_search_icon.svg.png" alt="" />
-                         </motion.button> */}
-                    </div>
-                    
-                </div>
-             </div>
-             
-            
-        </header>
-    )
+        <div className="mt-10 w-full flex justify-center">
+          <div className="w-full max-w-xl">
+            <PlaceholdersAndVanishInput
+              placeholders={placeholders}
+              onChange={(e) => setQuery(e.target.value)}
+              onSubmit={handleSubmit}
+            />
+          </div>
+        </div>
+      </motion.div>
+    </header>
+  );
 }

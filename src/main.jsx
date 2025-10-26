@@ -13,18 +13,6 @@ import Layout from './Layout'
 const router = createBrowserRouter([
   {
     path:'/',
-    element:<Signin/>,
-    
-    
-    
-  },
-  {
-    path:'/Signup',
-    element:<Signup/>,
-    
-  },
-  {
-    path:'/Home',
     element: <Layout/>,
     children:[
       {
@@ -32,7 +20,7 @@ const router = createBrowserRouter([
         element: <Sample1/>
       },
       {
-        path:"image",
+        path:"sample2/:encodedImage/:description",
         element: <Sample2/>
       }
     ]
