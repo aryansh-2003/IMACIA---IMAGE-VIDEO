@@ -1,208 +1,50 @@
 "use client";
 
-import {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { gsap } from "gsap";
 import { useNavigate } from "react-router";
 
-// ✅ SSR-safe matchMedia hook
-const useMedia = (queries, values, defaultValue) => {
-  const get = () => {
-    if (typeof window === "undefined") return defaultValue;
-    const idx = queries.findIndex((q) => window.matchMedia(q).matches);
-    return values[idx] ?? defaultValue;
-  };
-  const [value, setValue] = useState(get);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const handler = () => setValue(get);
-    const mqls = queries.map((q) => window.matchMedia(q));
-    mqls.forEach((mql) => mql.addEventListener("change", handler));
-    return () => mqls.forEach((mql) => mql.removeEventListener("change", handler));
-  }, [queries]);
-  return value;
-};
-
-// ✅ Hook for measuring container size
-const useMeasure = () => {
-  const ref = useRef(null);
-  const [size, setSize] = useState({ width: 0, height: 0 });
-  useLayoutEffect(() => {
-    if (!ref.current) return;
-    const ro = new ResizeObserver(([entry]) => {
-      setSize(entry.contentRect);
-    });
-    ro.observe(ref.current);
-    return () => ro.disconnect();
-  }, []);
-  return [ref, size];
-};
-
-// ✅ Preload all images efficiently
-const preloadImages = async (urls = []) => {
-  await Promise.all(
-    urls.map(
-      (src) =>
-        new Promise((resolve) => {
-          const img = new Image();
-          img.src = src;
-          img.onload = img.onerror = resolve;
-        })
-    )
-  );
-};
-
-export default function Masonry({
-  items,
-  ease = "power3.out",
-  duration = 0.6,
-  stagger = 0.05,
-  animateFrom = "bottom",
-  scaleOnHover = true,
-  hoverScale = 0.96,
-  blurToFocus = true,
-  colorShiftOnHover = true,
-  gap = 14,
-}) {
+export default function Masonry({ items }) {
   const navigate = useNavigate();
-  const columns = useMedia(
-    ["(min-width:1500px)", "(min-width:1100px)", "(min-width:700px)", "(min-width:400px)"],
-    [5, 4, 3, 2],
-    1
-  );
-  const [containerRef, { width }] = useMeasure();
-  const [imagesReady, setImagesReady] = useState(false);
-  const ctx = useRef();
 
-  // ✅ Layout calculation (responsive)
-  const grid = useMemo(() => {
-    if (!width) return [];
-    const colHeights = new Array(columns).fill(0);
-    const totalGaps = (columns - 1) * gap;
-    const colWidth = (width - totalGaps) / columns;
-
-    return items.map((img) => {
-      const col = colHeights.indexOf(Math.min(...colHeights));
-      const x = col * (colWidth + gap);
-      const ratio = img.width / img.height;
-      const h = colWidth / ratio;
-      const y = colHeights[col];
-      colHeights[col] += h + gap;
-      return { ...img, x, y, w: colWidth, h };
-    });
-  }, [columns, items, width, gap]);
-
-  // ✅ Preload images
-  useEffect(() => {
-    preloadImages(items.map((i) => i.src?.portrait)).then(() => setImagesReady(true));
-  }, [items]);
-
-  // ✅ Animate layout
-  useLayoutEffect(() => {
-    if (!imagesReady || !containerRef.current) return;
-
-    ctx.current = gsap.context(() => {
-      grid.forEach((item, i) => {
-        const target = `[data-key="${item.id}"]`;
-        const fromVars = {
-          opacity: 0,
-          filter: blurToFocus ? "blur(8px)" : "none",
-        };
-        const toVars = {
-          x: item.x,
-          y: item.y,
-          width: item.w,
-          height: item.h,
-          opacity: 1,
-          filter: "blur(0px)",
-          duration,
-          ease,
-          delay: i * stagger,
-        };
-        gsap.fromTo(target, fromVars, toVars);
-      });
-    }, containerRef);
-
-    return () => ctx.current?.revert();
-  }, [grid, imagesReady, blurToFocus, duration, ease, stagger]);
-
-  // ✅ Hover handlers
-  const handleEnter = (id) => {
-    if (scaleOnHover)
-      gsap.to(`[data-key="${id}"]`, { scale: hoverScale, duration: 0.3 });
-    if (colorShiftOnHover)
-      gsap.to(`[data-overlay="${id}"]`, { opacity: 1, duration: 0.3 });
-    // Show text overlay
-    gsap.to(`[data-text="${id}"]`, { opacity: 1, y: 0, duration: 0.3 });
-  };
-  
-  const handleLeave = (id) => {
-    if (scaleOnHover)
-      gsap.to(`[data-key="${id}"]`, { scale: 1, duration: 0.3 });
-    if (colorShiftOnHover)
-      gsap.to(`[data-overlay="${id}"]`, { opacity: 0, duration: 0.3 });
-    // Hide text overlay
-    gsap.to(`[data-text="${id}"]`, { opacity: 0, y: 10, duration: 0.3 });
-  };
-
-  // ✅ Compute dynamic container height
-  const containerHeight = useMemo(
-    () => Math.max(...grid.map((i) => i.y + i.h), 0),
-    [grid]
-  );
-
-  // Navigate to sample2 page
   const handleClick = (img) => {
     const encodedUrl = encodeURIComponent(img.src?.portrait || "");
     const encodedQuery = encodeURIComponent(img.alt || img.photographer || "image");
     navigate(`sample2/${encodedUrl}/${encodedQuery}`);
   };
 
+  if (!items || items.length === 0) return null;
+
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full rounded-2xl overflow-visible"
-      style={{ height: containerHeight }}
-    >
-      {grid.map((item) => (
+    <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 gap-4 space-y-4 px-2 w-full mx-auto">
+      {items.map((item, i) => (
         <div
-          key={item.id}
-          data-key={item.id}
-          className="absolute rounded-2xl overflow-hidden shadow-lg cursor-pointer will-change-transform border border-white/10"
+          key={`${item.id}-${i}`}
           onClick={() => handleClick(item)}
-          onMouseEnter={() => handleEnter(item.id)}
-          onMouseLeave={() => handleLeave(item.id)}
+          className="break-inside-avoid relative rounded-[20px] overflow-hidden cursor-pointer group mb-4 bg-gray-100 will-change-transform"
         >
-          <div
-            className="relative w-full h-full bg-cover bg-center"
-            style={{ backgroundImage: `url(${item.src.portrait})` }}
-          >
-            {/* Gradient overlay on hover */}
-            {colorShiftOnHover && (
-              <div
-                data-overlay={item.id}
-                className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-all"
-              />
-            )}
-            
-            {/* Text overlay with photographer info */}
-            <div
-              data-text={item.id}
-              className="absolute bottom-0 left-0 right-0 p-4 opacity-0 translate-y-2"
-              style={{ transform: "translateY(10px)" }}
-            >
-              <p className="text-sm font-semibold text-white truncate">
-                {item.photographer || "Unknown"}
-              </p>
-              <p className="text-xs text-slate-300 mt-0.5">
-                Click to view
-              </p>
-            </div>
+          <img
+            src={item.src.portrait}
+            alt={item.alt || item.photographer || "Wallpaper"}
+            className="w-full h-auto object-cover"
+            loading="lazy"
+          />
+          {/* Overlay on hover */}
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+          
+          {/* Action buttons (simulated Pinterest look) */}
+          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+             <button className="bg-red-600 text-white px-4 py-3 rounded-full font-bold text-sm hover:bg-red-700 transition">
+               Save
+             </button>
+          </div>
+
+          <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex justify-between items-end z-10">
+             <div className="bg-white/95 backdrop-blur text-black text-xs font-bold px-3 py-2 rounded-full truncate max-w-[70%] shadow-sm flex items-center gap-1 hover:bg-gray-100 transition">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+                <span className="truncate">{item.photographer || "Creator"}</span>
+             </div>
+             <button className="bg-white/95 backdrop-blur p-2 rounded-full text-black hover:bg-gray-100 shadow-sm transition">
+               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+             </button>
           </div>
         </div>
       ))}

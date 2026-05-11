@@ -1,345 +1,258 @@
-import { motion, AnimatePresence } from "motion/react";
 import React, { useContext, useEffect, useState } from "react";
 import UserContext from "../context/UserContext";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { ReactLenis } from "lenis/react";
 
 export default function Sample2() {
-  const { isloggedin, nextPageUrl, setnextPageUrl, inputvalue, Pagetype } = useContext(UserContext);
+  const { nextPageUrl, setnextPageUrl, inputvalue } = useContext(UserContext);
   const { encodedImage, description } = useParams();
+  const navigate = useNavigate();
 
   const [imagedata, setimagedata] = useState([]);
-  const [videodata, setvideodata] = useState([]);
   const [error, setError] = useState(null);
   const [loader, setloader] = useState(false);
   const [counter, setcounter] = useState(1);
   const [pageno, setpageno] = useState(1);
-  const [query, setquery] = useState("trending");
-  const [activetab, setactivetab] = useState("Home");
-  const [enlargedImage, setEnlargedImage] = useState(null);
+  const [query, setquery] = useState("aesthetic wallpapers");
 
-  const decodedImageUrl = encodedImage ? decodeURIComponent(encodedImage) : nextPageUrl;
+  const [mainImageUrl, setMainImageUrl] = useState(() => {
+    return encodedImage ? decodeURIComponent(encodedImage) : nextPageUrl;
+  });
 
-  console.log("Encoded:", encodedImage);
-  console.log("Decoded:", decodedImageUrl);
-  console.log("Description:", description);
+  const decodedDescription = description ? decodeURIComponent(description) : "Creator";
 
-  useEffect(() => setquery(inputvalue), [inputvalue]);
+  useEffect(() => {
+    if (inputvalue) {
+      setquery(inputvalue);
+    }
+  }, [inputvalue]);
 
   useEffect(() => {
     setloader(true);
-    fetch(`https://api.pexels.com/v1/search/?page=${pageno}&query=${query}&per_page=10`, {
-      headers: { Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc" }
-    })
-      .then(res => res.json())
-      .then(data => {
-        setimagedata(data.photos || []);
-        setvideodata(data.videos || []);
+    fetch(
+      `https://api.pexels.com/v1/search/?page=${pageno}&query=${query}&per_page=20`,
+      {
+        headers: {
+          Authorization: "VAet3ekIF1hWUIyVcVtDuLMguI7LB4gAlvFjpcfbhlipPP3mRyxD6eFc"
+        }
+      }
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        // if appending, we can append, but for simplicity we just set
+        setimagedata(prev => pageno === 1 ? (data.photos || []) : [...prev, ...(data.photos || [])]);
         setError(null);
         setloader(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("fetch error:", err);
         setError("Failed to load content");
         setloader(false);
       });
-  }, [query, counter]);
+  }, [query, pageno]);
+
+  useEffect(() => {
+    const url = encodedImage ? decodeURIComponent(encodedImage) : nextPageUrl;
+    setMainImageUrl(url);
+  }, [encodedImage, nextPageUrl]);
+
+  const [downloading, setDownloading] = useState(false);
 
   const downloadImage = async () => {
-    const urlToDownload = decodedImageUrl;
-    
+    const urlToDownload = mainImageUrl;
+    if (!urlToDownload) return;
+    setDownloading(true);
     try {
       const response = await fetch(urlToDownload);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "pexels-image.jpg";
+      a.download = `imacia-wallpaper-${Date.now()}.jpg`;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Download failed:", err);
-      setError("Failed to download image");
-    }
-  };
-
-  const next = () => {
-    setcounter(prev => prev + 1);
-    setpageno(counter + 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const prev = () => {
-    if (counter > 1) {
-      setcounter(prev => prev - 1);
-      setpageno(counter - 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Fallback: open image in new tab if CORS prevents blob download
+      window.open(urlToDownload, "_blank");
+    } finally {
+      setDownloading(false);
     }
   };
 
   const imagesize = (index) => {
-    setnextPageUrl(imagedata[index]?.src?.original);
-    setEnlargedImage(imagedata[index]?.src?.original);
-  };
+    const selectedImageUrl = imagedata[index]?.src?.portrait;
+    if (!selectedImageUrl) return;
 
-  const rendering = (url) => {
-    return Pagetype === "photo" ? (
-      <img className="w-full h-full object-cover rounded-2xl" src={url} alt="Preview" />
-    ) : (
-      <video className="w-full h-full object-cover rounded-2xl" autoPlay muted loop src={url} />
-    );
+    setnextPageUrl(selectedImageUrl);
+    const encodedUrl = encodeURIComponent(selectedImageUrl);
+    const encodedDesc = encodeURIComponent(imagedata[index]?.photographer || "");
+    window.history.pushState({}, "", `/sample2/${encodedUrl}/${encodedDesc}`);
+    setMainImageUrl(selectedImageUrl);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
     <>
       <ReactLenis root />
-      <div className={`min-h-screen relative overflow-hidden text-white transition-all ${isloggedin ? "hidden" : "block"}`}>
+      <div className="min-h-screen bg-white text-black pt-28 pb-12 font-sans transition-colors duration-500">
         
-        {/* Animated Galaxy Background */}
-        <div className="fixed inset-0 bg-[#0a0118] -z-10">
-          {/* Stars layer */}
-          <div className="absolute inset-0 opacity-60">
-            <div className="absolute top-[10%] left-[20%] w-1 h-1 bg-white rounded-full animate-pulse"></div>
-            <div className="absolute top-[25%] left-[60%] w-1 h-1 bg-blue-200 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
-            <div className="absolute top-[45%] left-[15%] w-0.5 h-0.5 bg-purple-200 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
-            <div className="absolute top-[60%] left-[70%] w-1 h-1 bg-white rounded-full animate-pulse" style={{animationDelay: '1.5s'}}></div>
-            <div className="absolute top-[80%] left-[40%] w-0.5 h-0.5 bg-blue-200 rounded-full animate-pulse" style={{animationDelay: '2s'}}></div>
-            <div className="absolute top-[15%] left-[85%] w-1 h-1 bg-purple-300 rounded-full animate-pulse" style={{animationDelay: '0.3s'}}></div>
-            <div className="absolute top-[35%] left-[45%] w-0.5 h-0.5 bg-white rounded-full animate-pulse" style={{animationDelay: '1.2s'}}></div>
-            <div className="absolute top-[70%] left-[80%] w-1 h-1 bg-blue-200 rounded-full animate-pulse" style={{animationDelay: '0.8s'}}></div>
-          </div>
-          
-          {/* Nebula clouds */}
-          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[120px] animate-pulse"></div>
-          <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '1s'}}></div>
-          <div className="absolute bottom-0 left-1/2 w-[700px] h-[700px] bg-indigo-600/15 rounded-full blur-[130px] animate-pulse" style={{animationDelay: '2s'}}></div>
-          
-          {/* Galaxy spiral gradient */}
-          <div className="absolute inset-0 bg-gradient-radial from-purple-900/30 via-transparent to-transparent"></div>
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/40 via-purple-950/30 to-blue-950/40"></div>
+        {/* Back Button */}
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 mb-6">
+          <button 
+            onClick={() => navigate(-1)}
+            className="w-12 h-12 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center"
+          >
+            <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </button>
         </div>
 
-        <div className="relative z-10 max-w-[1600px] mx-auto px-3 py-6 md:px-8 md:py-12">
-          
-          {/* Hero Section with Main Preview */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mb-8 md:mb-12"
-          >
-            <div className="relative bg-white/5 backdrop-blur-xl rounded-2xl md:rounded-3xl p-1 shadow-2xl border border-white/10">
-              <div className="bg-black/40 rounded-2xl md:rounded-3xl p-4 md:p-10">
-                
-                {/* Header Section */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 md:gap-4 mb-6 md:mb-8">
-                  <div className="flex-1 min-w-0">
-                    <h1 className="text-xl sm:text-2xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent truncate">
-                      {description ? decodeURIComponent(description) : "Featured Content"}
-                    </h1>
-                    <p className="text-slate-400 mt-1 md:mt-2 text-xs md:text-base">High quality visuals from Pexels</p>
-                  </div>
-                  
-                  {/* Compact Download Button */}
-                  <motion.button
-                    onClick={downloadImage}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="group relative px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full font-medium text-xs md:text-sm shadow-lg hover:bg-white/15 transition-all whitespace-nowrap"
-                  >
-                    <span className="relative flex items-center gap-2">
-                      <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      Download
-                    </span>
-                  </motion.button>
-                </div>
-
-                {/* Main Image Display */}
-                <div 
-                  className="relative aspect-[4/3] md:aspect-[16/10] lg:aspect-[21/9] w-full bg-black/50 rounded-xl md:rounded-2xl overflow-hidden shadow-2xl border border-white/10 cursor-pointer"
-                  onClick={() => decodedImageUrl && setEnlargedImage(decodedImageUrl)}
-                >{console.log(decodedImageUrl)}
-                  {decodedImageUrl ? (
-                    rendering(decodedImageUrl)
-                    
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <p className="text-slate-400">No image available</p>
-                    </div>
-                  )}
-                  
-                  {/* Gradient Overlay */}
-                  {decodedImageUrl && (
-                    <>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
-                      
-                      {/* Click to enlarge hint */}
-                      <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md rounded-full px-3 py-1 border border-white/20">
-                        <p className="text-xs text-white flex items-center gap-1">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                          </svg>
-                          Enlarge
-                        </p>
-                      </div>
-                      
-                      {/* Author Info Overlay */}
-                      <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 flex items-center gap-2 md:gap-3 bg-black/60 backdrop-blur-md rounded-full px-3 py-1.5 md:px-4 md:py-2 border border-white/20">
-                        <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center font-bold text-xs md:text-sm">
-                          S
-                        </div>
-                        <div>
-                          <p className="font-semibold text-xs md:text-sm">Senorita</p>
-                          <p className="text-[10px] md:text-xs text-slate-400">Photographer</p>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
+        {/* Main Pin Card */}
+        <div className="max-w-[1000px] mx-auto px-4 sm:px-6 mb-16">
+          <div className="bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden flex flex-col md:flex-row border border-gray-100">
+            
+            {/* Image Side */}
+            <div className="w-full md:w-1/2 flex items-center justify-center relative bg-gray-50 p-0 md:p-0">
+               {mainImageUrl ? (
+                 <img src={mainImageUrl} alt="Pin" className="w-full h-auto max-h-[80vh] object-cover" />
+               ) : (
+                 <div className="h-[500px] flex items-center justify-center text-gray-400">Loading Image...</div>
+               )}
             </div>
-          </motion.div>
 
-          {/* Gallery Section */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <h2 className="text-lg md:text-2xl font-bold text-white">Explore Gallery</h2>
+            {/* Details Side */}
+            <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-between">
               
-              {/* Compact Pagination */}
-              <div className="flex items-center gap-1.5 md:gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-2 md:px-3 py-1 md:py-1.5 shadow-lg">
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={prev}
-                  disabled={counter === 1}
-                  className={`w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center transition-all ${
-                    counter === 1 
-                      ? 'text-white/30 cursor-not-allowed' 
-                      : 'text-white hover:bg-white/10'
-                  }`}
-                >
-                  <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </motion.button>
+              <div>
+                {/* Top Actions */}
+                <div className="flex items-center justify-between mb-10">
+                  <div className="flex items-center gap-2">
+                    <button className="p-3 hover:bg-gray-100 rounded-full transition">
+                      <svg className="w-6 h-6 text-gray-900" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/></svg>
+                    </button>
+                    <button className="p-3 hover:bg-gray-100 rounded-full transition">
+                      <svg className="w-6 h-6 text-gray-900" fill="currentColor" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+                    </button>
+                    <button className="p-3 hover:bg-gray-100 rounded-full transition">
+                      <svg className="w-6 h-6 text-gray-900" fill="currentColor" viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                    </button>
+                  </div>
 
-                <div className="px-2 md:px-3 text-xs md:text-sm font-medium text-white/90">
-                  {pageno}
+                  <div className="flex items-center gap-2">
+                    {/* Pinterest Download Button implementation */}
+                    <button 
+                      onClick={downloadImage}
+                      disabled={downloading}
+                      className="px-5 py-3.5 bg-gray-200 text-gray-900 rounded-full font-semibold hover:bg-gray-300 transition flex items-center gap-2"
+                    >
+                      {downloading ? (
+                        <span className="w-5 h-5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></span>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                      )}
+                      <span className="text-sm">Download</span>
+                    </button>
+                    <button className="px-6 py-3.5 bg-red-600 text-white rounded-full font-bold text-sm hover:bg-red-700 transition shadow-sm">
+                      Save
+                    </button>
+                  </div>
                 </div>
 
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={next}
-                  className="w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-all"
-                >
-                  <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </motion.button>
-              </div>
-            </div>
-
-            {/* Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
-              {imagedata.map((photo, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: idx * 0.05 }}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => imagesize(idx)}
-                  className="group relative aspect-[3/4] cursor-pointer rounded-xl md:rounded-2xl overflow-hidden bg-black/40 border border-white/10 shadow-lg"
-                >
-                  <img
-                    src={photo.src?.portrait}
-                    alt=""
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                  />
+                {/* Title & Creator */}
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-8 line-clamp-3">
+                    {decodedDescription || "Beautiful Wallpaper"}
+                  </h1>
                   
-                  {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="absolute bottom-2 left-2 right-2 md:bottom-4 md:left-4 md:right-4">
-                      <p className="text-xs md:text-sm font-medium text-white truncate">{photo.photographer}</p>
-                      <p className="text-[10px] md:text-xs text-slate-300">Click to preview</p>
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-3">
+                      <div className="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600 text-2xl uppercase">
+                        {decodedDescription.charAt(0)}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 text-lg">{decodedDescription}</h3>
+                        <p className="text-sm text-gray-500">20.4k followers</p>
+                      </div>
                     </div>
+                    <button className="px-5 py-3 bg-gray-200 rounded-full font-semibold text-gray-900 hover:bg-gray-300 transition text-sm">
+                      Follow
+                    </button>
                   </div>
-                </motion.div>
-              ))}
+
+                  <div className="border-t border-gray-100 pt-8 mt-4">
+                    <div className="flex items-center justify-between mb-4">
+                       <h3 className="font-bold text-xl text-gray-900">Comments</h3>
+                       <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                    <p className="text-gray-500 text-base">No comments yet. Add one to start the conversation.</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Comment Input */}
+              <div className="mt-12 flex gap-3 items-center border-t border-gray-100 pt-6">
+                 <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-500 flex-shrink-0">
+                    U
+                 </div>
+                 <input type="text" placeholder="Add a comment" className="flex-1 bg-gray-100 rounded-full px-5 py-3.5 outline-none focus:ring-2 focus:ring-gray-300 transition" />
+              </div>
+
             </div>
           </div>
+        </div>
 
-          {/* Error Message */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="bg-red-500/10 border border-red-500/20 backdrop-blur-sm rounded-2xl p-4 mb-8"
-            >
-              <p className="text-red-400 text-center font-medium text-sm">{error}</p>
-            </motion.div>
-          )}
+        {/* More to explore */}
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-center text-gray-900 mb-10">More like this</h2>
+          
+          <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 gap-4 space-y-4 w-full">
+            {imagedata.map((photo, idx) => (
+              <div
+                key={`${photo.id}-${idx}`}
+                onClick={() => imagesize(idx)}
+                className="break-inside-avoid relative rounded-[20px] overflow-hidden cursor-pointer group mb-4 bg-gray-100"
+              >
+                <img
+                  src={photo.src?.portrait}
+                  alt={photo.photographer}
+                  className="w-full h-auto object-cover"
+                  loading="lazy"
+                />
+                {/* Hover actions */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                   <button className="bg-red-600 text-white px-4 py-3 rounded-full font-bold text-sm hover:bg-red-700 transition">Save</button>
+                </div>
+                <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex justify-between items-end z-10">
+                   <div className="bg-white/95 backdrop-blur text-black text-xs font-bold px-3 py-2 rounded-full truncate max-w-[70%] flex items-center gap-1 hover:bg-gray-100 transition">
+                      <span className="truncate">{photo.photographer}</span>
+                   </div>
+                   <button className="bg-white/95 backdrop-blur p-2 rounded-full text-black hover:bg-gray-100 transition shadow-sm">
+                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                   </button>
+                </div>
+              </div>
+            ))}
+          </div>
 
-          {/* Loader */}
           {loader && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex justify-center items-center gap-4 py-12"
-            >
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                className="w-6 h-6 md:w-8 md:h-8 border-4 border-purple-500/30 border-t-purple-400 rounded-full"
-              ></motion.div>
-              <p className="text-xs md:text-sm font-medium text-slate-300">Loading content...</p>
-            </motion.div>
+            <div className="flex justify-center mt-10">
+              <div className="w-8 h-8 border-[3px] border-gray-200 border-t-red-600 rounded-full animate-spin"></div>
+            </div>
           )}
+
+          <div className="flex justify-center mt-12 mb-10">
+            <button 
+              onClick={() => { setpageno(p => p+1); }}
+              className="px-8 py-4 bg-gray-200 text-gray-900 rounded-full font-bold hover:bg-gray-300 transition"
+            >
+              Load More
+            </button>
+          </div>
         </div>
       </div>
-
-      {/* Enlarged Image Modal */}
-      <AnimatePresence>
-        {enlargedImage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"
-            onClick={() => setEnlargedImage(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", damping: 25 }}
-              className="relative max-w-7xl w-full max-h-[90vh] flex items-center justify-center"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Close Button */}
-              <button
-                onClick={() => setEnlargedImage(null)}
-                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-
-              {/* Image */}
-              <img
-                src={enlargedImage}
-                alt="Enlarged view"
-                className="max-w-xl max-h-2xl object-contain rounded-2xl shadow-2xl border border-white/20"
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 }

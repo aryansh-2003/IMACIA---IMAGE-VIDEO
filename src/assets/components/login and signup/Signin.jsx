@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import app from "./firebaseconfig"
 import logo from "./logo of.png"
-import { getAuth , createUserWithEmailAndPassword,signInWithEmailAndPassword } from "firebase/auth"
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth"
 import UserContext from "../context/UserContext";
 import { motion } from "motion/react"
 import { useNavigate } from "react-router";
@@ -13,7 +13,6 @@ import { AuroraBackground } from "../ui/aurora-background";
 export default function Signin(){
 
         const {setuserdata} = useContext(UserContext)
-        const {setisloggedin} = useContext(UserContext)
         const auth = getAuth(app)
         const [email,setemail] = useState("")
         const [password,setpassword] = useState("")

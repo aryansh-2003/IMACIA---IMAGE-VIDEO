@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import app from "./firebaseconfig"
 import logo from "./logo of.png"
 import { getAuth , createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
